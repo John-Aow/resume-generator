@@ -692,7 +692,7 @@ export default function App() {
           </button>
 
           <a 
-            href={`/?print=true&theme=${theme}&accentColor=${accentColor}`}
+            href={`/resume-generator/?print=true&theme=${theme}&accentColor=${accentColor}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
