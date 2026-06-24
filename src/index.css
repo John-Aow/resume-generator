@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* High-fidelity print styles */
+@media print {
+  @page {
+    size: auto;
+    margin: 0 !important; /* Removes default browser headers (page title/URL) and footers (date/page numbers) */
+  }
+
+  body {
+    background-color: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  #print-canvas {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    background-color: white !important;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+  
+  /* Custom safe margins on the actual sheet are managed via page margins */
+  #resume-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important; /* Zero padding in print since @page defines the page constraints */
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background-color: transparent !important;
+  }
+
+  /* Force page breaks gracefully */
+  .page-break {
+    page-break-before: always;
+  }
+}
+
+/* Custom thin scrollbar styling for slick browser experience */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}

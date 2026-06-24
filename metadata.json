@@ -1,0 +1,6 @@
+{
+  "name": "Resume Web App",
+  "description": "An AI-powered resume builder with modern theme selectors, bullet-point optimization, and a step-by-step GitHub deployment guide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
