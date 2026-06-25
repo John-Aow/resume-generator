@@ -481,58 +481,38 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
       {/* ==================== THEME 1.8: FORMAL-SHORT ==================== */}
       {theme === "formal-short" && (
         <div className="space-y-4 font-sans text-slate-900">
-          {/* Header (No Icons, Formal) */}
+          {/* Header */}
           <div className="flex flex-col md:flex-row md:justify-between items-start border-b border-slate-200 pb-3 gap-3">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 leading-none">{personalInfo.name || "Insert Name"}</h1>
-              <p className={`text-xs uppercase tracking-wider font-semibold ${accentText} mt-1.5`}>{personalInfo.title || "Professional Role"}</p>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{personalInfo.name || "Insert Name"}</h1>
+              <p className={`text-sm font-semibold ${accentText} tracking-tight mt-1`}>{personalInfo.title || "Professional Role"}</p>
             </div>
-            
-            {/* Contact details list without icons */}
-            <div className="text-left md:text-right text-[10.5px] text-slate-600 space-y-1">
-              <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-start md:justify-end items-center">
+            {/* Contact details grid */}
+            <div className="flex flex-col gap-1 text-right md:-mt-1 whitespace-nowrap">
+              <div className="flex flex-wrap gap-x-3 gap-y-1 justify-start md:justify-end text-[11px] text-slate-500">
                 {personalInfo.email && (
-                  <span className="whitespace-nowrap">
+                  <div className="flex items-center gap-1.5 justify-start md:justify-end">
+                    <Mail size={12} className={accentText} />
                     <a href={`mailto:${personalInfo.email}`} className="hover:underline">{personalInfo.email}</a>
-                  </span>
+                  </div>
                 )}
                 {personalInfo.phone && (
-                  <span className="whitespace-nowrap">
-                    {personalInfo.email && <span className="text-slate-300 mx-1.5">|</span>}
-                    {personalInfo.phone}
-                  </span>
+                  <div className="flex items-center gap-1.5 justify-start md:justify-end">
+                    <Phone size={12} className={accentText} />
+                    <span>{personalInfo.phone}</span>
+                  </div>
                 )}
                 {personalInfo.location && (
-                  <span className="whitespace-nowrap">
-                    {(personalInfo.email || personalInfo.phone) && <span className="text-slate-300 mx-1.5">|</span>}
-                    {personalInfo.location}
-                  </span>
+                  <div className="flex items-center gap-1.5 justify-start md:justify-end">
+                    <MapPin size={12} className={accentText} />
+                    <span>{personalInfo.location}</span>
+                  </div>
                 )}
               </div>
-              <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-start md:justify-end items-center text-slate-500">
-                {personalInfo.website && (
-                  <span className="whitespace-nowrap">
-                    <a href={personalInfo.website.startsWith("http") ? personalInfo.website : `https://${personalInfo.website}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {personalInfo.website.replace(/^(https?:\/\/)?(www\.)?/, "")}
-                    </a>
-                  </span>
-                )}
-                {personalInfo.github && (
-                  <span className="whitespace-nowrap">
-                    {personalInfo.website && <span className="text-slate-300 mx-1.5">|</span>}
-                    <a href={personalInfo.github.startsWith("http") ? personalInfo.github : `https://${personalInfo.github}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {personalInfo.github.replace(/^(https?:\/\/)?(www\.)?/, "")}
-                    </a>
-                  </span>
-                )}
-                {personalInfo.linkedin && (
-                  <span className="whitespace-nowrap">
-                    {(personalInfo.website || personalInfo.github) && <span className="text-slate-300 mx-1.5">|</span>}
-                    <a href={personalInfo.linkedin.startsWith("http") ? personalInfo.linkedin : `https://${personalInfo.linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {personalInfo.linkedin.replace(/^(https?:\/\/)?(www\.)?/, "")}
-                    </a>
-                  </span>
-                )}
+              <div className="flex flex-wrap gap-x-3 gap-y-1 justify-start md:justify-end">
+                {renderLink(personalInfo.website, <Globe size={12} className={accentText} />)}
+                {renderLink(personalInfo.github, <Github size={12} className={accentText} />)}
+                {renderLink(personalInfo.linkedin, <Linkedin size={12} className={accentText} />)}
               </div>
             </div>
           </div>
@@ -722,9 +702,9 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
           </div>
 
           {/* Grid Body */}
-          <div className="grid grid-cols-12 gap-5 p-4">
+          <div className="grid grid-cols-12 gap-4 p-3.5">
             {/* Left Column (Narrower Sidebar) */}
-            <div className="col-span-4 space-y-4 pr-4 border-r border-slate-200/85">
+            <div className="col-span-3 space-y-3.5 pr-3 border-r border-slate-200/85">
               {/* CONTACT */}
               <div>
                 <h2 className="text-[10px] font-extrabold tracking-[0.2em] text-slate-900 uppercase border-b border-slate-200 pb-0.5 mb-2">
@@ -779,7 +759,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                   <ul className="space-y-1 text-[10px] text-slate-600">
                     {skills.map((grp) => (
                       <li key={grp.id} className="leading-snug">
-                        <span className="font-bold text-slate-800">• {grp.category}: </span>
+                        <span className="font-bold text-slate-800">{grp.category}: </span>
                         <span>{grp.items.filter(Boolean).join(", ")}</span>
                       </li>
                     ))}
@@ -820,7 +800,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                   <ul className="space-y-0.5 text-[10px] text-slate-600">
                     {languages.map((l) => (
                       <li key={l.id} className="leading-snug">
-                        <span className="font-bold text-slate-800">• {l.name}: </span>
+                        <span className="font-bold text-slate-800">{l.name}: </span>
                         <span>{l.level}</span>
                       </li>
                     ))}
@@ -830,7 +810,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
             </div>
 
             {/* Right Column (Wider Body) */}
-            <div className="col-span-8 space-y-4">
+            <div className="col-span-9 space-y-4">
               {/* PROFESSIONAL SUMMARY */}
               {personalInfo.rawSummary && (
                 <div>
