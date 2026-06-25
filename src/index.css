@@ -15,6 +15,12 @@
 #resume-sheet [class~="text-[13.5px]"] { font-size: calc(13.5px * var(--resume-font-scale)) !important; }
 #resume-sheet [class~="text-[15px]"] { font-size: calc(15px * var(--resume-font-scale)) !important; }
 #resume-sheet [class~="text-[16px]"] { font-size: calc(16px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[17px]"] { font-size: calc(17px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[18px]"] { font-size: calc(18px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[19px]"] { font-size: calc(19px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[21px]"] { font-size: calc(21px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[28px]"] { font-size: calc(28px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[30px]"] { font-size: calc(30px * var(--resume-font-scale)) !important; }
 #resume-sheet [class~="text-xs"] { font-size: calc(12px * var(--resume-font-scale)) !important; }
 #resume-sheet [class~="text-sm"] { font-size: calc(14px * var(--resume-font-scale)) !important; }
 #resume-sheet [class~="text-lg"] { font-size: calc(18px * var(--resume-font-scale)) !important; }

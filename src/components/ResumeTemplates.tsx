@@ -20,7 +20,8 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
     "formal-short": "font-sans text-slate-900 bg-white",
     creative: "font-sans text-neutral-800 bg-white",
     developer: "font-mono text-zinc-900 bg-zinc-50/50",
-    "split-sidebar": "font-sans text-slate-800 bg-white"
+    "split-sidebar": "font-sans text-slate-800 bg-white",
+    pboom: "font-sans text-[#2f3032] bg-[#f5f3f0]"
   }[theme];
 
   // Colors mapping for themes
@@ -58,7 +59,8 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
     "formal-short": "list-disc list-inside space-y-0.5 text-slate-700 text-xs leading-normal",
     creative: "list-none space-y-1 text-neutral-600 text-sm",
     developer: "list-none space-y-1 text-zinc-700 text-xs text-[12px] leading-relaxed",
-    "split-sidebar": "list-disc list-inside space-y-0.5 text-slate-600 text-[11.5px] leading-relaxed"
+    "split-sidebar": "list-disc list-inside space-y-0.5 text-slate-600 text-[11.5px] leading-relaxed",
+    pboom: "list-disc list-outside ml-4 space-y-0.5 text-[#303235] text-[9.5px] leading-normal"
   }[theme];
 
   const sectionHeaderStyle = {
@@ -68,8 +70,10 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
     "formal-short": "text-[13px] font-bold tracking-wider text-slate-900 uppercase border-b pb-0.5 mb-2 block",
     creative: "text-md font-bold tracking-tight text-neutral-900 mb-3 flex items-center gap-2",
     developer: "text-xs font-bold text-zinc-950 uppercase mb-3.5 flex items-center gap-2 p-1 bg-zinc-200 border-l-4",
-    "split-sidebar": "text-[11.5px] font-bold tracking-[0.2em] text-slate-800 uppercase mb-3 block"
+    "split-sidebar": "text-[11.5px] font-bold tracking-[0.2em] text-slate-800 uppercase mb-3 block",
+    pboom: "text-[18px] font-extrabold text-[#303235] mb-2 flex items-center gap-2"
   }[theme];
+  const sheetPaddingClass = theme === "pboom" ? "p-0" : "p-6 sm:p-8 md:p-10";
 
   // Standard Link Formatter
   const renderLink = (url: string, icon: React.ReactNode) => {
@@ -93,7 +97,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
     <div
       id="resume-sheet"
       style={{ "--resume-font-scale": Math.min(120, Math.max(80, fontSize)) / 100 } as React.CSSProperties}
-      className={`w-full mx-auto p-6 sm:p-8 md:p-10 shadow-lg border border-slate-150 rounded-md print:shadow-none print:border-none print:p-0 ${fontClass}`}
+      className={`w-full mx-auto ${sheetPaddingClass} shadow-lg border border-slate-150 rounded-md print:shadow-none print:border-none print:p-0 ${fontClass}`}
     >
       
       {/* ==================== THEME 1: MODERN ==================== */}
@@ -928,6 +932,185 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
         </div>
       )}
 
+      {/* ==================== THEME 2: PBOOM ==================== */}
+      {theme === "pboom" && (
+        <div className="relative min-h-full overflow-hidden bg-[#f7f5f2] text-[#303235]">
+          <div className="absolute inset-x-0 top-0 h-[128px] bg-[#ddd4cf]" />
+
+          <div className="relative grid grid-cols-12 gap-5 px-8 py-9">
+            {/* Left framed profile rail */}
+            <aside className="col-span-5 border-2 border-[#303235] px-7 pt-7 pb-6 min-h-[257mm]">
+              <div className="aspect-[4/4.45] w-full bg-[#d8d1cc] overflow-hidden mb-9">
+                {personalInfo.photoUrl ? (
+                  <img
+                    src={personalInfo.photoUrl}
+                    alt={personalInfo.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[28px] font-extrabold tracking-widest text-[#303235] bg-[#d8d1cc]">
+                    {personalInfo.name ? personalInfo.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "PB"}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-7">
+                <div className="space-y-3 text-[12px] text-[#303235]">
+                  {personalInfo.phone && (
+                    <div className="flex items-center gap-4">
+                      <span className="w-5 h-5 bg-[#ddd4cf] flex items-center justify-center shrink-0">
+                        <Phone size={12} />
+                      </span>
+                      <span>{personalInfo.phone}</span>
+                    </div>
+                  )}
+                  {personalInfo.email && (
+                    <div className="flex items-center gap-4 min-w-0">
+                      <span className="w-5 h-5 bg-[#ddd4cf] flex items-center justify-center shrink-0">
+                        <Mail size={12} />
+                      </span>
+                      <a href={`mailto:${personalInfo.email}`} className="truncate hover:underline">{personalInfo.email}</a>
+                    </div>
+                  )}
+                  {personalInfo.location && (
+                    <div className="flex items-center gap-4">
+                      <span className="w-5 h-5 bg-[#ddd4cf] flex items-center justify-center shrink-0">
+                        <MapPin size={12} />
+                      </span>
+                      <span>{personalInfo.location}</span>
+                    </div>
+                  )}
+                </div>
+
+                {education.length > 0 && (
+                  <section>
+                    <h2 className="text-[19px] font-extrabold text-[#303235] bg-[#ddd4cf] px-1 mb-5">
+                      Education
+                    </h2>
+                    <div className="space-y-5">
+                      {education.map((edu) => (
+                        <div key={edu.id} className="text-[13px] leading-snug">
+                          <h3 className="text-[15px] font-extrabold leading-tight">
+                            {edu.degree}{edu.endDate ? ` - ${edu.endDate.replace(/^[A-Za-z]{3}\s+/, "")}` : ""}
+                          </h3>
+                          <p>{edu.institution}</p>
+                          {edu.field && <p>{edu.field}</p>}
+                          {edu.location && <p>{edu.location}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {skills.length > 0 && (
+                  <section>
+                    <h2 className="text-[19px] font-extrabold text-[#303235] bg-[#ddd4cf] px-1 mb-5">
+                      Expertise
+                    </h2>
+                    <div className="space-y-3 text-[13px] leading-snug">
+                      {skills.map((grp) => (
+                        <p key={grp.id}>
+                          <span className="font-extrabold">{grp.category}</span>
+                          {grp.items.length > 0 && <span> - {grp.items.filter(Boolean).join(", ")}</span>}
+                        </p>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {languages.length > 0 && (
+                  <section>
+                    <h2 className="text-[19px] font-extrabold text-[#303235] bg-[#ddd4cf] px-1 mb-5">
+                      Language
+                    </h2>
+                    <div className="space-y-3 text-[13px] leading-snug">
+                      {languages.map((lang) => (
+                        <p key={lang.id}>{lang.name} - {lang.level}</p>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            </aside>
+
+            {/* Right work column */}
+            <main className="col-span-7 pt-5 pb-2">
+              <header className="h-[103px] flex flex-col justify-center">
+                <h1 className="text-[30px] leading-none tracking-[0.14em] uppercase text-[#303235]">
+                  {personalInfo.name || "Insert Name"}
+                </h1>
+                <p className="text-[21px] font-extrabold tracking-[0.18em] uppercase text-[#303235] mt-2">
+                  {personalInfo.title || "Professional Role"}
+                </p>
+              </header>
+
+              <section className="pt-4">
+                <h2 className="text-[21px] font-extrabold text-[#303235] flex items-center gap-3 mb-4">
+                  <span className="w-6 h-6 border border-[#303235] flex items-center justify-center">
+                    <Briefcase size={15} />
+                  </span>
+                  Work Experience
+                </h2>
+
+                <div className="space-y-3">
+                  {experiences.map((exp) => (
+                    <article key={exp.id} className="relative border-l-4 border-[#c17a4f] pl-4 pb-1">
+                      <h3 className="text-[15px] font-extrabold text-[#c17a4f] leading-tight">
+                        {exp.company}
+                      </h3>
+                      <div className="text-[10.5px] leading-snug mb-1">
+                        <span className="font-extrabold">{exp.role}</span>
+                        <span> ({exp.startDate} - {exp.current ? "Present" : exp.endDate})</span>
+                      </div>
+                      <ul className="list-disc list-outside ml-4 space-y-0.5 text-[9.5px] leading-normal text-[#303235]">
+                        {exp.bullets.map((bullet, idx) => bullet.trim() && (
+                          <li key={idx}>{bullet}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+
+                {projects.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <h2 className="text-[17px] font-extrabold text-[#303235] flex items-center gap-2">
+                      <FolderGit size={16} /> Projects
+                    </h2>
+                    {projects.map((project) => (
+                      <article key={project.id} className="border-l-4 border-[#c17a4f] pl-4">
+                        <h3 className="text-[12px] font-extrabold text-[#c17a4f]">{project.title}</h3>
+                        {project.description && <p className="text-[9.5px] leading-normal">{project.description}</p>}
+                        <ul className="list-disc list-outside ml-4 text-[9.5px] leading-normal">
+                          {project.bullets.map((bullet, idx) => bullet.trim() && <li key={idx}>{bullet}</li>)}
+                        </ul>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                {certifications.length > 0 && (
+                  <div className="mt-4">
+                    <h2 className="text-[17px] font-extrabold text-[#303235] flex items-center gap-2 mb-2">
+                      <Award size={16} /> Certifications
+                    </h2>
+                    <ul className="list-disc list-outside ml-5 text-[9.5px] leading-normal">
+                      {certifications.map((cert) => (
+                        <li key={cert.id}>
+                          <span className="font-extrabold">{cert.name}</span>
+                          {cert.issuer && <span> - {cert.issuer}</span>}
+                          {cert.date && <span> ({cert.date})</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            </main>
+          </div>
+        </div>
+      )}
+
       {/* ==================== THEME 2: EXECUTIVE ==================== */}
       {theme === "executive" && (
         <div className="space-y-5">
@@ -1433,7 +1616,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
 };
 
 export const ResumePreview: FC<ResumePreviewProps> = (props) => {
-  const isShort = props.theme === "modern-short" || props.theme === "formal-short" || props.theme === "split-sidebar";
+  const isShort = props.theme === "modern-short" || props.theme === "formal-short" || props.theme === "split-sidebar" || props.theme === "pboom";
   const marginHeightClass = isShort ? "h-[0.5cm]" : "h-[1.5cm]";
   const paddingXClass = isShort ? "print:px-[0.6cm]" : "print:px-[1.5cm]";
 

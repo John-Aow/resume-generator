@@ -1494,7 +1494,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1"><Layers size={13} className="inline mr-1 text-blue-500" /> Theme:</span>
                 <div className="bg-slate-900 border border-slate-800 p-0.5 rounded-lg flex flex-wrap gap-0.5">
-                  {(["modern", "modern-short", "executive", "formal-short", "split-sidebar", "creative", "developer"] as DesignTheme[]).map((t) => (
+                  {(["modern", "modern-short", "pboom", "executive", "formal-short", "split-sidebar", "creative", "developer"] as DesignTheme[]).map((t) => (
                     <button
                       key={t}
                       onClick={() => setTheme(t)}
