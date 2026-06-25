@@ -664,9 +664,8 @@ export default function App() {
             <Cpu size={20} className="animate-pulse" />
           </div>
           <div>
-            <span className="text-sm font-bold text-slate-100 uppercase tracking-widest block">AI Studio</span>
             <span className="text-xl font-extrabold text-white tracking-tight flex items-center gap-1.5 leading-none">
-              Resume Builder
+              Resume Generator
               <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium px-2 py-0.5 rounded-full uppercase">Live IDE</span>
             </span>
           </div>
