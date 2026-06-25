@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   Mail, Phone, MapPin, Globe, Github, Linkedin, Briefcase, GraduationCap,
   Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles, Download,
@@ -13,10 +13,15 @@ import { ResumePreview } from "./components/ResumeTemplates";
 const generateId = () => Math.random().toString(36).substring(2, 9);
 const DEFAULT_FONT_SIZE = 100;
 const DEFAULT_INDENT_SCALE = 100;
+const DEFAULT_PHOTO_CROP = 50;
+const DEFAULT_PHOTO_ZOOM = 100;
 const clampFontSize = (value: number) => Math.min(120, Math.max(80, value));
 const clampIndentScale = (value: number) => Math.min(150, Math.max(50, value));
+const clampPercent = (value: number) => Math.min(100, Math.max(0, value));
+const clampPhotoZoom = (value: number) => Math.min(200, Math.max(100, value));
 
 export default function App() {
+  const photoDragRef = useRef<{ startX: number; startY: number; cropX: number; cropY: number } | null>(null);
   // Application settings and theme loaded synchronously from localStorage or URL parameters
   const [theme, setTheme] = useState<DesignTheme>(() => {
     if (typeof window !== "undefined") {

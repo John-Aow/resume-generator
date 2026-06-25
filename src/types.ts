@@ -13,6 +13,9 @@ export interface PersonalInfo {
   linkedin: string;
   rawSummary: string;
   photoUrl?: string;
+  photoCropX?: number;
+  photoCropY?: number;
+  photoZoom?: number;
 }
 
 export interface Experience {
