@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
+#resume-sheet {
+  --resume-font-scale: 1;
+}
+
+#resume-sheet [class~="text-[9px]"] { font-size: calc(9px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[9.5px]"] { font-size: calc(9.5px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[10px]"] { font-size: calc(10px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[10.5px]"] { font-size: calc(10.5px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[11px]"] { font-size: calc(11px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[11.5px]"] { font-size: calc(11.5px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[12px]"] { font-size: calc(12px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[13px]"] { font-size: calc(13px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[13.5px]"] { font-size: calc(13.5px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[15px]"] { font-size: calc(15px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-[16px]"] { font-size: calc(16px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-xs"] { font-size: calc(12px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-sm"] { font-size: calc(14px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-lg"] { font-size: calc(18px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-xl"] { font-size: calc(20px * var(--resume-font-scale)) !important; }
+#resume-sheet [class~="text-3xl"] { font-size: calc(30px * var(--resume-font-scale)) !important; }
+
+.resume-a4-preview > div,
+.resume-a4-preview table {
+  height: 100%;
+}
+
+.resume-a4-preview #resume-sheet {
+  min-height: 100%;
+}
+
 /* High-fidelity print styles */
 @media print {
   @page {

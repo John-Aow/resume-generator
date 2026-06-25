@@ -6,9 +6,10 @@ interface ResumePreviewProps {
   data: ResumeData;
   theme: DesignTheme;
   accentColor: string; // Tailwind color class, e.g., 'blue', 'emerald', 'slate'
+  fontSize?: number;
 }
 
-const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor }) => {
+const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor, fontSize = 100 }) => {
   const { personalInfo, experiences, education, projects, skills, certifications, languages } = data;
 
   // Setup styling maps based on theme selection
@@ -89,7 +90,11 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
   };
 
   return (
-    <div id="resume-sheet" className={`w-full mx-auto p-6 sm:p-8 md:p-10 shadow-lg border border-slate-150 rounded-md print:shadow-none print:border-none print:p-0 ${fontClass}`}>
+    <div
+      id="resume-sheet"
+      style={{ "--resume-font-scale": Math.min(120, Math.max(80, fontSize)) / 100 } as React.CSSProperties}
+      className={`w-full mx-auto p-6 sm:p-8 md:p-10 shadow-lg border border-slate-150 rounded-md print:shadow-none print:border-none print:p-0 ${fontClass}`}
+    >
       
       {/* ==================== THEME 1: MODERN ==================== */}
       {theme === "modern" && (

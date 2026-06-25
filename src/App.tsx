@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { 
-  Mail, Phone, MapPin, Globe, Github, Linkedin, Briefcase, GraduationCap, 
-  Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles, Download, 
-  Check, RefreshCw, Layers, Palette, Clipboard, Cpu, FileJson, 
-  ArrowRight, ExternalLink, HelpCircle, Save, BookOpen, AlertCircle
+import {
+  Mail, Phone, MapPin, Globe, Github, Linkedin, Briefcase, GraduationCap,
+  Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles, Download,
+  Check, RefreshCw, Layers, Palette, Clipboard, Cpu, FileJson,
+  ArrowRight, ExternalLink, HelpCircle, Save, BookOpen, AlertCircle,
+  ALargeSmall, RotateCcw
 } from "lucide-react";
 import { ResumeData, SAMPLE_RESUMES, DesignTheme } from "./types";
 import { ResumePreview } from "./components/ResumeTemplates";
 
 // Safe ID Generator
 const generateId = () => Math.random().toString(36).substring(2, 9);
+const DEFAULT_FONT_SIZE = 100;
+const clampFontSize = (value: number) => Math.min(120, Math.max(80, value));
 
 export default function App() {
   // Application settings and theme loaded synchronously from localStorage or URL parameters
@@ -36,7 +39,23 @@ export default function App() {
     }
     return "blue";
   });
-  
+
+  const [fontSize, setFontSize] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlFontSize = Number(params.get("fontSize"));
+      if (Number.isFinite(urlFontSize) && urlFontSize > 0) {
+        return clampFontSize(urlFontSize);
+      }
+
+      const savedFontSize = Number(localStorage.getItem("resume_font_size"));
+      if (Number.isFinite(savedFontSize) && savedFontSize > 0) {
+        return clampFontSize(savedFontSize);
+      }
+    }
+    return DEFAULT_FONT_SIZE;
+  });
+
   // Resume state pre-filled with Software Engineer draft or loaded synchronously from localStorage
   const [resumeData, setResumeData] = useState<ResumeData>(() => {
     if (typeof window !== "undefined") {
@@ -90,6 +109,11 @@ export default function App() {
     localStorage.setItem("resume_accent_color", accentColor);
   }, [accentColor]);
 
+  // Automatically persist selected resume font size to localStorage
+  useEffect(() => {
+    localStorage.setItem("resume_font_size", String(fontSize));
+  }, [fontSize]);
+
   // Automatically persist resume data whenever it is edited
   useEffect(() => {
     localStorage.setItem("resume_web_app_data", JSON.stringify(resumeData));
@@ -112,7 +136,11 @@ export default function App() {
       if (urlTheme) setTheme(urlTheme as DesignTheme);
       const urlAccent = params.get("accentColor");
       if (urlAccent) setAccentColor(urlAccent);
-      
+      const urlFontSize = Number(params.get("fontSize"));
+      if (Number.isFinite(urlFontSize) && urlFontSize > 0) {
+        setFontSize(clampFontSize(urlFontSize));
+      }
+
       // Let font downloading and browser rendering settle before auto-firing print
       const timer = setTimeout(() => {
         window.print();
@@ -447,7 +475,7 @@ export default function App() {
       }
 
       const rawJson = await response.json();
-      
+
       // Post-process response to ensure every element contains robust client-use IDs
       const mappedResult: ResumeData = {
         personalInfo: {
@@ -528,26 +556,26 @@ export default function App() {
         type: type
       })
     })
-    .then(async (res) => {
-      if (!res.ok) {
-        throw new Error(await res.text() || "Optimization API call failed.");
-      }
-      return res.json();
-    })
-    .then((data) => {
-      if (type === "summary") {
-        setOptSingleText(data.text);
-      } else {
-        setOptAlternatives(data.alternatives || [originalText]);
-      }
-    })
-    .catch((err: any) => {
-      console.error("Optimizer Error:", err);
-      setOptError(err.message || "Failed to contact Gemini optimizer.");
-    })
-    .finally(() => {
-      setAiOptimizing(false);
-    });
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(await res.text() || "Optimization API call failed.");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (type === "summary") {
+          setOptSingleText(data.text);
+        } else {
+          setOptAlternatives(data.alternatives || [originalText]);
+        }
+      })
+      .catch((err: any) => {
+        console.error("Optimizer Error:", err);
+        setOptError(err.message || "Failed to contact Gemini optimizer.");
+      })
+      .finally(() => {
+        setAiOptimizing(false);
+      });
   };
 
   const handleApplyOptimization = (chosenText: string) => {
@@ -614,12 +642,13 @@ export default function App() {
           </div>
         </div>
 
-        {/* Pure Resume Sheet */}
-        <div className="w-full max-w-[21cm] bg-white print:p-0 print:shadow-none print:w-full print:border-none print:m-0 shadow-lg border border-slate-200 rounded-sm">
-          <ResumePreview 
+          {/* Pure Resume Sheet */}
+        <div className="w-full max-w-[210mm] bg-white print:p-0 print:shadow-none print:w-full print:border-none print:m-0 shadow-lg border border-slate-200 rounded-sm">
+          <ResumePreview
             data={resumeData}
             theme={theme}
             accentColor={accentColor}
+            fontSize={fontSize}
           />
         </div>
       </div>
@@ -650,14 +679,14 @@ export default function App() {
             <span className="text-xs font-semibold text-slate-400 pl-2 pr-1 flex items-center gap-1">
               <BookOpen size={11} /> Profiles:
             </span>
-            <button 
+            <button
               onClick={() => handleLoadSample("software_engineer")}
               className="text-xs font-semibold text-slate-200 hover:text-white px-2.5 py-1 hover:bg-slate-800 rounded-md transition"
             >
               Engineer
             </button>
             <span className="text-slate-800">|</span>
-            <button 
+            <button
               onClick={() => handleLoadSample("product_manager")}
               className="text-xs font-semibold text-slate-200 hover:text-white px-2.5 py-1 hover:bg-slate-800 rounded-md transition"
             >
@@ -665,7 +694,7 @@ export default function App() {
             </button>
           </div>
 
-          <button 
+          <button
             onClick={handleSaveToLocalStorage}
             className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700 bg-slate-900 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
           >
@@ -682,7 +711,7 @@ export default function App() {
             )}
           </button>
 
-          <button 
+          <button
             onClick={downloadBackupJSON}
             title="Download full resume database backup as standard JSON metadata file"
             className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700 bg-slate-900 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
@@ -691,8 +720,8 @@ export default function App() {
             <span className="hidden sm:inline">Export JSON</span>
           </button>
 
-          <a 
-            href={`/resume-generator/?print=true&theme=${theme}&accentColor=${accentColor}`}
+          <a
+            href={`/resume-generator/?print=true&theme=${theme}&accentColor=${accentColor}&fontSize=${fontSize}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
@@ -700,6 +729,7 @@ export default function App() {
               localStorage.setItem("resume_web_app_data", JSON.stringify(resumeData));
               localStorage.setItem("resume_theme", theme);
               localStorage.setItem("resume_accent_color", accentColor);
+              localStorage.setItem("resume_font_size", String(fontSize));
             }}
             className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30 font-bold px-4 py-2 rounded-lg transition hover:scale-[1.02] cursor-pointer"
           >
@@ -711,53 +741,48 @@ export default function App() {
 
       {/* Main split viewport layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-65px)]">
-        
+
         {/* ==================== LEFT VIEWPORT: FORM EDITORS & DEPLOYER (Col: 5) ==================== */}
         <section className="lg:col-span-5 bg-slate-950 border-r border-slate-800 flex flex-col print-hide max-h-[calc(100vh-65px)] overflow-y-auto">
-          
+
           {/* Quick tab ribbon selector */}
           <nav className="flex flex-wrap border-b border-slate-800 bg-slate-900/60 p-2 gap-1 sticky top-0 z-30">
-            <button 
+            <button
               onClick={() => setActiveTab("personal")}
-              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${
-                activeTab === "personal" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
+              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${activeTab === "personal" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
             >
               <MapPin size={14} />
               <span>Personal</span>
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("experience")}
-              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${
-                activeTab === "experience" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
+              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${activeTab === "experience" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
             >
               <Briefcase size={14} />
               <span>Jobs</span>
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("skills")}
-              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${
-                activeTab === "skills" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
+              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${activeTab === "skills" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
             >
               <Code size={14} />
               <span>Skills</span>
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("education")}
-              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${
-                activeTab === "education" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
+              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${activeTab === "education" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
             >
               <GraduationCap size={14} />
               <span>Edu & Cert</span>
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("projects")}
-              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${
-                activeTab === "projects" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
+              className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${activeTab === "projects" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                }`}
             >
               <FolderGit size={14} />
               <span>Projects</span>
@@ -766,7 +791,7 @@ export default function App() {
 
           {/* Editor Contents Panel */}
           <div className="p-5 flex-1 space-y-6">
-            
+
             {/* Success messages alerts */}
             {aiSuccessMessage && (
               <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs px-3.5 py-2.5 rounded-lg flex items-start gap-2">
@@ -789,9 +814,9 @@ export default function App() {
                 <div className="bg-slate-950/40 border border-slate-800/60 p-3 rounded-lg flex items-center gap-4">
                   <div className="relative w-14 h-14 rounded-full overflow-hidden bg-slate-850 border border-slate-700 flex items-center justify-center shrink-0">
                     {resumeData.personalInfo.photoUrl ? (
-                      <img 
-                        src={resumeData.personalInfo.photoUrl} 
-                        alt="Profile Preview" 
+                      <img
+                        src={resumeData.personalInfo.photoUrl}
+                        alt="Profile Preview"
                         className="w-full h-full object-cover"
                         referrerPolicy="no-referrer"
                       />
@@ -804,10 +829,10 @@ export default function App() {
                     <div className="flex gap-2">
                       <label className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-[10px] px-2.5 py-1 rounded cursor-pointer transition select-none flex items-center gap-1">
                         Upload Image
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
@@ -821,7 +846,7 @@ export default function App() {
                         />
                       </label>
                       {resumeData.personalInfo.photoUrl && (
-                        <button 
+                        <button
                           onClick={() => updatePersonalInfo("photoUrl", "")}
                           className="bg-slate-850 hover:bg-red-950/40 hover:text-red-400 text-slate-400 font-medium text-[10px] px-2.5 py-1 rounded transition cursor-pointer"
                         >
@@ -829,7 +854,7 @@ export default function App() {
                         </button>
                       )}
                     </div>
-                    <input 
+                    <input
                       type="text"
                       placeholder="Or paste an image URL..."
                       value={resumeData.personalInfo.photoUrl || ""}
@@ -842,9 +867,9 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Full Name</label>
-                    <input 
-                      type="text" 
-                      value={resumeData.personalInfo.name} 
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.name}
                       onChange={(e) => updatePersonalInfo("name", e.target.value)}
                       placeholder="Alex Rivera"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -852,9 +877,9 @@ export default function App() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Job Title</label>
-                    <input 
-                      type="text" 
-                      value={resumeData.personalInfo.title} 
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.title}
                       onChange={(e) => updatePersonalInfo("title", e.target.value)}
                       placeholder="Senior Software Engineer"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -865,9 +890,9 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Email Address</label>
-                    <input 
-                      type="email" 
-                      value={resumeData.personalInfo.email} 
+                    <input
+                      type="email"
+                      value={resumeData.personalInfo.email}
                       onChange={(e) => updatePersonalInfo("email", e.target.value)}
                       placeholder="alex.rivera@dev.com"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -875,9 +900,9 @@ export default function App() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Phone Number</label>
-                    <input 
-                      type="text" 
-                      value={resumeData.personalInfo.phone} 
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.phone}
                       onChange={(e) => updatePersonalInfo("phone", e.target.value)}
                       placeholder="+1 (555) 341-9901"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -888,9 +913,9 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Location</label>
-                    <input 
-                      type="text" 
-                      value={resumeData.personalInfo.location} 
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.location}
                       onChange={(e) => updatePersonalInfo("location", e.target.value)}
                       placeholder="San Francisco, CA"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -898,9 +923,9 @@ export default function App() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Portfolio Website</label>
-                    <input 
-                      type="text" 
-                      value={resumeData.personalInfo.website} 
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.website}
                       onChange={(e) => updatePersonalInfo("website", e.target.value)}
                       placeholder="https://alexrivera.dev"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -911,9 +936,9 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">GitHub URL / Username</label>
-                    <input 
-                      type="text" 
-                      value={resumeData.personalInfo.github} 
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.github}
                       onChange={(e) => updatePersonalInfo("github", e.target.value)}
                       placeholder="github.com/alexriveradev"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -921,9 +946,9 @@ export default function App() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">LinkedIn Profile</label>
-                    <input 
-                      type="text" 
-                      value={resumeData.personalInfo.linkedin} 
+                    <input
+                      type="text"
+                      value={resumeData.personalInfo.linkedin}
                       onChange={(e) => updatePersonalInfo("linkedin", e.target.value)}
                       placeholder="linkedin.com/in/alex-rivera-dev"
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition"
@@ -935,7 +960,7 @@ export default function App() {
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest">Professional Bio Summary</label>
                   </div>
-                  <textarea 
+                  <textarea
                     rows={4}
                     value={resumeData.personalInfo.rawSummary}
                     onChange={(e) => updatePersonalInfo("rawSummary", e.target.value)}
@@ -954,8 +979,8 @@ export default function App() {
                   <h3 className="font-extrabold text-white text-md flex items-center gap-2">
                     <Briefcase size={16} className="text-blue-500" /> Work History & Roles
                   </h3>
-                  <button 
-                    onClick={addExperience} 
+                  <button
+                    onClick={addExperience}
                     className="text-[10px] font-bold bg-blue-600/30 text-blue-400 border border-blue-500/30 hover:bg-blue-600 hover:text-white px-2 py-1 rounded transition flex items-center gap-1 cursor-pointer"
                   >
                     <Plus size={11} /> Add Job
@@ -971,7 +996,7 @@ export default function App() {
                   <div className="space-y-6">
                     {resumeData.experiences.map((exp, pIdx) => (
                       <div key={exp.id} className="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3 relative">
-                        <button 
+                        <button
                           onClick={() => removeExperience(exp.id)}
                           className="absolute right-3.5 top-3.5 text-slate-500 hover:text-red-400 transition"
                           title="Delete professional experience"
@@ -984,8 +1009,8 @@ export default function App() {
                         <div className="grid grid-cols-2 gap-3.5">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Company</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={exp.company}
                               onChange={(e) => updateExperience(exp.id, "company", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none"
@@ -993,8 +1018,8 @@ export default function App() {
                           </div>
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Role / Job Title</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={exp.role}
                               onChange={(e) => updateExperience(exp.id, "role", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none"
@@ -1005,8 +1030,8 @@ export default function App() {
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">StartDate</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={exp.startDate}
                               placeholder="e.g. Jun 2021"
                               onChange={(e) => updateExperience(exp.id, "startDate", e.target.value)}
@@ -1015,8 +1040,8 @@ export default function App() {
                           </div>
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">EndDate</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={exp.endDate}
                               disabled={exp.current}
                               placeholder="e.g. Present"
@@ -1026,7 +1051,7 @@ export default function App() {
                           </div>
                           <div className="flex items-center pt-4">
                             <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider cursor-pointer">
-                              <input 
+                              <input
                                 type="checkbox"
                                 checked={exp.current}
                                 onChange={(e) => {
@@ -1042,8 +1067,8 @@ export default function App() {
 
                         <div>
                           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Location</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={exp.location}
                             placeholder="e.g. San Francisco, CA"
                             onChange={(e) => updateExperience(exp.id, "location", e.target.value)}
@@ -1055,7 +1080,7 @@ export default function App() {
                         <div className="pt-2 border-t border-slate-800 space-y-2">
                           <div className="flex justify-between items-center">
                             <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Accomplishment Bullets</span>
-                            <button 
+                            <button
                               onClick={() => addExpBullet(exp.id)}
                               className="text-[9px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-2 py-0.5 rounded transition flex items-center gap-0.5"
                             >
@@ -1066,15 +1091,15 @@ export default function App() {
                           <div className="space-y-1.5">
                             {exp.bullets.map((bullet, idx) => (
                               <div key={idx} className="flex gap-2 items-center bg-slate-950/80 p-1.5 rounded-lg border border-slate-800">
-                                <span className="text-[10px] font-mono font-bold text-slate-500 w-4 pl-1">{idx+1}.</span>
-                                <input 
+                                <span className="text-[10px] font-mono font-bold text-slate-500 w-4 pl-1">{idx + 1}.</span>
+                                <input
                                   type="text"
                                   value={bullet}
                                   onChange={(e) => updateExpBullet(exp.id, idx, e.target.value)}
                                   className="flex-1 bg-transparent text-xs text-slate-200 border-none focus:outline-none"
                                 />
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                  <button 
+                                  <button
                                     onClick={() => removeExpBullet(exp.id, idx)}
                                     title="Delete bullet"
                                     className="text-slate-500 hover:text-red-400 p-1 hover:bg-slate-800 rounded transition"
@@ -1100,8 +1125,8 @@ export default function App() {
                   <h3 className="font-extrabold text-white text-md flex items-center gap-2">
                     <Code size={16} className="text-blue-500" /> Technologies & Skills
                   </h3>
-                  <button 
-                    onClick={addSkillGroup} 
+                  <button
+                    onClick={addSkillGroup}
                     className="text-[10px] font-bold bg-blue-600/30 text-blue-400 border border-blue-500/30 hover:bg-blue-600 hover:text-white px-2 py-1 rounded transition flex items-center gap-1 cursor-pointer"
                   >
                     <Plus size={11} /> Add Group
@@ -1111,7 +1136,7 @@ export default function App() {
                 <div className="space-y-4">
                   {resumeData.skills.map((grp) => (
                     <div key={grp.id} className="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3 relative">
-                      <button 
+                      <button
                         onClick={() => removeSkillGroup(grp.id)}
                         className="absolute right-3.5 top-3.5 text-slate-500 hover:text-red-400 transition"
                       >
@@ -1120,8 +1145,8 @@ export default function App() {
 
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Group Title (e.g. Back-end)</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           value={grp.category}
                           onChange={(e) => updateSkillCategory(grp.id, e.target.value)}
                           className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none"
@@ -1130,8 +1155,8 @@ export default function App() {
 
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Individual Skills (comma separated)</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           value={grp.items.join(", ")}
                           onChange={(e) => updateSkillItemsString(grp.id, e.target.value)}
                           className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none font-sans"
@@ -1147,15 +1172,15 @@ export default function App() {
             {/* TAB: EDUCATION & CERTIFICATIONS */}
             {activeTab === "education" && (
               <div className="space-y-6">
-                
+
                 {/* Education section */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center pb-2 border-b border-slate-800">
                     <h3 className="font-extrabold text-white text-md flex items-center gap-1.5">
                       <GraduationCap size={16} className="text-blue-500" /> Academic Qualifications
                     </h3>
-                    <button 
-                      onClick={addEducation} 
+                    <button
+                      onClick={addEducation}
                       className="text-[10px] font-bold bg-blue-600/30 text-blue-400 px-2 py-0.5 rounded transition flex items-center gap-0.5"
                     >
                       <Plus size={10} /> Add Education
@@ -1165,18 +1190,18 @@ export default function App() {
                   <div className="space-y-4">
                     {resumeData.education.map((edu, eIdx) => (
                       <div key={edu.id} className="bg-slate-900/60 p-4 border border-slate-500/10 rounded-xl space-y-3 relative">
-                        <button 
+                        <button
                           onClick={() => removeEducation(edu.id)}
                           className="absolute right-3.5 top-3.5 text-slate-500 hover:text-red-400 transition"
                         >
                           <Trash2 size={13} />
                         </button>
-                        
+
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">School / Institution</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={edu.institution}
                               onChange={(e) => updateEducation(edu.id, "institution", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs"
@@ -1184,8 +1209,8 @@ export default function App() {
                           </div>
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Degree Title</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={edu.degree}
                               onChange={(e) => updateEducation(edu.id, "degree", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs"
@@ -1196,8 +1221,8 @@ export default function App() {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Field of Study</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={edu.field}
                               onChange={(e) => updateEducation(edu.id, "field", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs"
@@ -1205,8 +1230,8 @@ export default function App() {
                           </div>
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Location</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={edu.location}
                               onChange={(e) => updateEducation(edu.id, "location", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs"
@@ -1217,8 +1242,8 @@ export default function App() {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">StartDate</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={edu.startDate}
                               onChange={(e) => updateEducation(edu.id, "startDate", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs"
@@ -1226,8 +1251,8 @@ export default function App() {
                           </div>
                           <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">EndDate</label>
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={edu.endDate}
                               onChange={(e) => updateEducation(edu.id, "endDate", e.target.value)}
                               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs"
@@ -1247,7 +1272,7 @@ export default function App() {
                       <span className="text-[11px] font-bold text-indigo-400 uppercase flex items-center gap-1">
                         <Award size={13} /> Certificates
                       </span>
-                      <button 
+                      <button
                         onClick={addCertification}
                         className="text-[9px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded"
                       >
@@ -1258,29 +1283,29 @@ export default function App() {
                     <div className="space-y-2">
                       {resumeData.certifications.map((cert) => (
                         <div key={cert.id} className="bg-slate-900 border border-slate-800 p-2.5 rounded-lg space-y-1.5 relative">
-                          <button 
+                          <button
                             onClick={() => removeCertification(cert.id)}
                             className="absolute right-1 text-slate-500 hover:text-red-400"
                           >
                             <Trash2 size={11} />
                           </button>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={cert.name}
                             onChange={(e) => updateCertification(cert.id, "name", e.target.value)}
                             placeholder="Name"
                             className="bg-transparent text-xs text-white border-b border-transparent focus:border-slate-700 w-[90%] focus:outline-none"
                           />
                           <div className="grid grid-cols-2 gap-1">
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={cert.issuer}
                               onChange={(e) => updateCertification(cert.id, "issuer", e.target.value)}
                               placeholder="Issuer"
                               className="bg-transparent text-[10px] text-slate-400 border-none focus:outline-none"
                             />
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={cert.date}
                               onChange={(e) => updateCertification(cert.id, "date", e.target.value)}
                               placeholder="Date"
@@ -1298,7 +1323,7 @@ export default function App() {
                       <span className="text-[11px] font-bold text-indigo-400 uppercase flex items-center gap-1">
                         <Languages size={13} /> Languages
                       </span>
-                      <button 
+                      <button
                         onClick={addLanguage}
                         className="text-[9px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded"
                       >
@@ -1309,21 +1334,21 @@ export default function App() {
                     <div className="space-y-2">
                       {resumeData.languages.map((lang) => (
                         <div key={lang.id} className="bg-slate-900 border border-slate-800 p-2 rounded-lg flex gap-1.5 items-center relative">
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={lang.name}
                             onChange={(e) => updateLanguage(lang.id, "name", e.target.value)}
                             placeholder="e.g. English"
                             className="bg-transparent text-xs text-white w-1/2 focus:outline-none"
                           />
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={lang.level}
                             onChange={(e) => updateLanguage(lang.id, "level", e.target.value)}
                             placeholder="e.g. Native"
                             className="bg-transparent text-[10px] text-indigo-400 w-1/3 focus:outline-none text-right font-semibold"
                           />
-                          <button 
+                          <button
                             onClick={() => removeLanguage(lang.id)}
                             className="absolute right-1.5 text-slate-500 hover:text-red-400"
                           >
@@ -1345,8 +1370,8 @@ export default function App() {
                   <h3 className="font-extrabold text-white text-md flex items-center gap-1.5">
                     <FolderGit size={16} className="text-blue-500" /> Showcase Projects
                   </h3>
-                  <button 
-                    onClick={addProject} 
+                  <button
+                    onClick={addProject}
                     className="text-[10px] font-bold bg-blue-600/30 text-blue-400 border border-blue-500/30 hover:bg-blue-600 hover:text-white px-2 py-1 rounded transition flex items-center gap-1 cursor-pointer"
                   >
                     <Plus size={11} /> Add Project
@@ -1356,7 +1381,7 @@ export default function App() {
                 <div className="space-y-5">
                   {resumeData.projects.map((proj) => (
                     <div key={proj.id} className="bg-slate-900 p-4 border border-slate-800 rounded-xl space-y-3 relative">
-                      <button 
+                      <button
                         onClick={() => removeProject(proj.id)}
                         className="absolute right-3.5 top-3.5 text-slate-500 hover:text-red-400 transition"
                       >
@@ -1366,8 +1391,8 @@ export default function App() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Project Name</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={proj.title}
                             onChange={(e) => updateProject(proj.id, "title", e.target.value)}
                             className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-white focus:outline-none"
@@ -1375,8 +1400,8 @@ export default function App() {
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">GitHub / Code Repository</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={proj.githubUrl}
                             placeholder="github.com/alex/scribeflow"
                             onChange={(e) => updateProject(proj.id, "githubUrl", e.target.value)}
@@ -1388,8 +1413,8 @@ export default function App() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Core Technologies (comma series)</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={proj.technologies.join(", ")}
                             onChange={(e) => {
                               const list = e.target.value.split(",").map(val => val.trim());
@@ -1400,8 +1425,8 @@ export default function App() {
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Live URL Demo</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={proj.liveUrl}
                             placeholder="scribeflow-live.co"
                             onChange={(e) => updateProject(proj.id, "liveUrl", e.target.value)}
@@ -1412,8 +1437,8 @@ export default function App() {
 
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Short Elevator Pitch / Description</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           value={proj.description}
                           onChange={(e) => updateProject(proj.id, "description", e.target.value)}
                           className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none"
@@ -1424,7 +1449,7 @@ export default function App() {
                       <div className="pt-2 border-t border-slate-800 space-y-1.5">
                         <div className="flex justify-between items-center">
                           <span className="text-[10px] font-mono font-semibold text-slate-400">Accomplishment Points</span>
-                          <button 
+                          <button
                             onClick={() => addProjBullet(proj.id)}
                             className="text-[9px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-1.5 py-0.5 rounded"
                           >
@@ -1434,14 +1459,14 @@ export default function App() {
 
                         {proj.bullets.map((b, bIdx) => (
                           <div key={bIdx} className="flex gap-2 items-center bg-slate-950/80 p-1 rounded-lg">
-                            <span className="text-[10px] font-bold text-slate-500 pl-1">{bIdx+1}</span>
-                            <input 
-                              type="text" 
+                            <span className="text-[10px] font-bold text-slate-500 pl-1">{bIdx + 1}</span>
+                            <input
+                              type="text"
                               value={b}
                               onChange={(e) => updateProjBullet(proj.id, bIdx, e.target.value)}
                               className="flex-1 bg-transparent text-xs text-slate-300 border-none focus:outline-none"
                             />
-                            <button 
+                            <button
                               onClick={() => removeProjBullet(proj.id, bIdx)}
                               className="text-slate-500 hover:text-red-400 p-0.5"
                             >
@@ -1461,59 +1486,90 @@ export default function App() {
 
         {/* ==================== RIGHT VIEWPORT: LIVE PREVIEW CANVAS (Col: 7) ==================== */}
         <section className="lg:col-span-7 bg-slate-900 p-4 sm:p-6 overflow-y-auto flex flex-col items-center">
-          
+
           {/* Customizer Control Board sticky wrapper */}
-          <div className="w-full max-w-2xl bg-slate-950 p-3 rounded-xl border border-slate-800/80 mb-5 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between shadow-lg print-hide">
-            
-            {/* Theme choices */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1"><Layers size={13} className="inline mr-1 text-blue-500" /> Theme:</span>
-              <div className="bg-slate-900 border border-slate-800 p-0.5 rounded-lg flex flex-wrap gap-0.5">
-                {(["modern", "modern-short", "executive", "formal-short", "split-sidebar", "creative", "developer"] as DesignTheme[]).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTheme(t)}
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md transition ${
-                      theme === t ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    {t === "split-sidebar" ? "Split-Sidebar" : t === "formal-short" ? "Formal-Short" : t}
-                  </button>
-                ))}
+          <div className="w-full max-w-2xl bg-slate-950 p-3 rounded-xl border border-slate-800/80 mb-5 flex flex-col gap-3 shadow-lg print-hide">
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+              {/* Theme choices */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1"><Layers size={13} className="inline mr-1 text-blue-500" /> Theme:</span>
+                <div className="bg-slate-900 border border-slate-800 p-0.5 rounded-lg flex flex-wrap gap-0.5">
+                  {(["modern", "modern-short", "executive", "formal-short", "split-sidebar", "creative", "developer"] as DesignTheme[]).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTheme(t)}
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md transition ${theme === t ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+                        }`}
+                    >
+                      {t === "split-sidebar" ? "Split-Sidebar" : t === "formal-short" ? "Formal-Short" : t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Accent selection choices */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1"><Palette size={13} className="inline mr-1 text-indigo-500" /> Color:</span>
+                <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1.5 gap-2">
+                  {[
+                    { name: "blue", bg: "bg-blue-500" },
+                    { name: "emerald", bg: "bg-emerald-500" },
+                    { name: "violet", bg: "bg-violet-500" },
+                    { name: "rose", bg: "bg-rose-500" },
+                    { name: "amber", bg: "bg-amber-500" },
+                    { name: "slate", bg: "bg-slate-600" }
+                  ].map((c) => (
+                    <button
+                      key={c.name}
+                      onClick={() => setAccentColor(c.name)}
+                      title={`Select ${c.name} style`}
+                      className={`w-3.5 h-3.5 rounded-full transition-transform hover:scale-125 ${c.bg} ${accentColor === c.name ? "ring-2 ring-white/60 scale-110" : "opacity-70"
+                        }`}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Accent selection choices */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1"><Palette size={13} className="inline mr-1 text-indigo-500" /> Color:</span>
-              <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1.5 gap-2">
-                {[
-                  { name: "blue", bg: "bg-blue-500" },
-                  { name: "emerald", bg: "bg-emerald-500" },
-                  { name: "violet", bg: "bg-violet-500" },
-                  { name: "rose", bg: "bg-rose-500" },
-                  { name: "amber", bg: "bg-amber-500" },
-                  { name: "slate", bg: "bg-slate-600" }
-                ].map((c) => (
-                  <button
-                    key={c.name}
-                    onClick={() => setAccentColor(c.name)}
-                    title={`Select ${c.name} style`}
-                    className={`w-3.5 h-3.5 rounded-full transition-transform hover:scale-125 ${c.bg} ${
-                      accentColor === c.name ? "ring-2 ring-white/60 scale-110" : "opacity-70"
-                    }`}
-                  />
-                ))}
+            {/* Font size control */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-t border-slate-800 pt-3">
+              <div className="flex items-center justify-between sm:justify-start gap-2 sm:w-36">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                  <ALargeSmall size={13} className="inline mr-1 text-emerald-500" /> Font:
+                </span>
+                <span className="text-[10px] font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md tabular-nums">
+                  {fontSize}%
+                </span>
               </div>
+              <input
+                type="range"
+                min="80"
+                max="120"
+                step="1"
+                value={fontSize}
+                onChange={(e) => setFontSize(clampFontSize(Number(e.target.value)))}
+                aria-label="Resume font size"
+                className="w-full accent-emerald-500 cursor-pointer"
+              />
+              <button
+                type="button"
+                onClick={() => setFontSize(DEFAULT_FONT_SIZE)}
+                title="Reset font size"
+                className="self-start sm:self-auto inline-flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 bg-slate-900 rounded-md w-8 h-8 transition"
+              >
+                <RotateCcw size={13} />
+              </button>
             </div>
           </div>
 
-          {/* Actual Letter Sized Sheet */}
-          <div className="w-full max-w-[21cm] shrink-0 bg-white shadow-2xl rounded-sm">
-            <ResumePreview 
+          {/* Actual A4 Sized Sheet */}
+          <div className="resume-a4-preview w-full max-w-[210mm] aspect-[210/297] shrink-0 overflow-hidden bg-white shadow-2xl rounded-sm">
+            <ResumePreview
               data={resumeData}
               theme={theme}
               accentColor={accentColor}
+              fontSize={fontSize}
             />
           </div>
 
