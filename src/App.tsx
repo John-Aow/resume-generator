@@ -4,7 +4,7 @@ import {
   Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles, Download,
   Check, RefreshCw, Layers, Palette, Clipboard, Cpu, FileJson,
   ArrowRight, ExternalLink, HelpCircle, Save, BookOpen, AlertCircle,
-  ALargeSmall, RotateCcw
+  ALargeSmall, ListIndentIncrease, RotateCcw
 } from "lucide-react";
 import { ResumeData, SAMPLE_RESUMES, DesignTheme } from "./types";
 import { ResumePreview } from "./components/ResumeTemplates";
@@ -12,7 +12,9 @@ import { ResumePreview } from "./components/ResumeTemplates";
 // Safe ID Generator
 const generateId = () => Math.random().toString(36).substring(2, 9);
 const DEFAULT_FONT_SIZE = 100;
+const DEFAULT_INDENT_SCALE = 100;
 const clampFontSize = (value: number) => Math.min(120, Math.max(80, value));
+const clampIndentScale = (value: number) => Math.min(150, Math.max(50, value));
 
 export default function App() {
   // Application settings and theme loaded synchronously from localStorage or URL parameters
@@ -54,6 +56,22 @@ export default function App() {
       }
     }
     return DEFAULT_FONT_SIZE;
+  });
+
+  const [indentScale, setIndentScale] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlIndentScale = Number(params.get("indentScale"));
+      if (Number.isFinite(urlIndentScale) && urlIndentScale > 0) {
+        return clampIndentScale(urlIndentScale);
+      }
+
+      const savedIndentScale = Number(localStorage.getItem("resume_indent_scale"));
+      if (Number.isFinite(savedIndentScale) && savedIndentScale > 0) {
+        return clampIndentScale(savedIndentScale);
+      }
+    }
+    return DEFAULT_INDENT_SCALE;
   });
 
   // Resume state pre-filled with Software Engineer draft or loaded synchronously from localStorage
@@ -114,6 +132,11 @@ export default function App() {
     localStorage.setItem("resume_font_size", String(fontSize));
   }, [fontSize]);
 
+  // Automatically persist selected resume indent scale to localStorage
+  useEffect(() => {
+    localStorage.setItem("resume_indent_scale", String(indentScale));
+  }, [indentScale]);
+
   // Automatically persist resume data whenever it is edited
   useEffect(() => {
     localStorage.setItem("resume_web_app_data", JSON.stringify(resumeData));
@@ -139,6 +162,10 @@ export default function App() {
       const urlFontSize = Number(params.get("fontSize"));
       if (Number.isFinite(urlFontSize) && urlFontSize > 0) {
         setFontSize(clampFontSize(urlFontSize));
+      }
+      const urlIndentScale = Number(params.get("indentScale"));
+      if (Number.isFinite(urlIndentScale) && urlIndentScale > 0) {
+        setIndentScale(clampIndentScale(urlIndentScale));
       }
 
       // Let font downloading and browser rendering settle before auto-firing print
@@ -649,6 +676,7 @@ export default function App() {
             theme={theme}
             accentColor={accentColor}
             fontSize={fontSize}
+            indentScale={indentScale}
           />
         </div>
       </div>
@@ -720,7 +748,7 @@ export default function App() {
           </button>
 
           <a
-            href={`/resume-generator/?print=true&theme=${theme}&accentColor=${accentColor}&fontSize=${fontSize}`}
+            href={`/resume-generator/?print=true&theme=${theme}&accentColor=${accentColor}&fontSize=${fontSize}&indentScale=${indentScale}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
@@ -729,6 +757,7 @@ export default function App() {
               localStorage.setItem("resume_theme", theme);
               localStorage.setItem("resume_accent_color", accentColor);
               localStorage.setItem("resume_font_size", String(fontSize));
+              localStorage.setItem("resume_indent_scale", String(indentScale));
             }}
             className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30 font-bold px-4 py-2 rounded-lg transition hover:scale-[1.02] cursor-pointer"
           >
@@ -1532,33 +1561,64 @@ export default function App() {
             </div>
 
             {/* Font size control */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 border-t border-slate-800 pt-3">
-              <div className="flex items-center justify-between sm:justify-start gap-2 sm:w-36">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
-                  <ALargeSmall size={13} className="inline mr-1 text-emerald-500" /> Font:
-                </span>
-                <span className="text-[10px] font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md tabular-nums">
-                  {fontSize}%
-                </span>
+            <div className="grid grid-cols-1 gap-3 border-t border-slate-800 pt-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="flex items-center justify-between sm:justify-start gap-2 sm:w-36">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    <ALargeSmall size={13} className="inline mr-1 text-emerald-500" /> Font:
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md tabular-nums">
+                    {fontSize}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="80"
+                  max="120"
+                  step="1"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(clampFontSize(Number(e.target.value)))}
+                  aria-label="Resume font size"
+                  className="w-full accent-emerald-500 cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFontSize(DEFAULT_FONT_SIZE)}
+                  title="Reset font size"
+                  className="self-start sm:self-auto inline-flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 bg-slate-900 rounded-md w-8 h-8 transition"
+                >
+                  <RotateCcw size={13} />
+                </button>
               </div>
-              <input
-                type="range"
-                min="80"
-                max="120"
-                step="1"
-                value={fontSize}
-                onChange={(e) => setFontSize(clampFontSize(Number(e.target.value)))}
-                aria-label="Resume font size"
-                className="w-full accent-emerald-500 cursor-pointer"
-              />
-              <button
-                type="button"
-                onClick={() => setFontSize(DEFAULT_FONT_SIZE)}
-                title="Reset font size"
-                className="self-start sm:self-auto inline-flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 bg-slate-900 rounded-md w-8 h-8 transition"
-              >
-                <RotateCcw size={13} />
-              </button>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div className="flex items-center justify-between sm:justify-start gap-2 sm:w-36">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                    <ListIndentIncrease size={13} className="inline mr-1 text-cyan-500" /> Indent:
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md tabular-nums">
+                    {indentScale}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="150"
+                  step="1"
+                  value={indentScale}
+                  onChange={(e) => setIndentScale(clampIndentScale(Number(e.target.value)))}
+                  aria-label="Resume indent scale"
+                  className="w-full accent-cyan-500 cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIndentScale(DEFAULT_INDENT_SCALE)}
+                  title="Reset indent scale"
+                  className="self-start sm:self-auto inline-flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 bg-slate-900 rounded-md w-8 h-8 transition"
+                >
+                  <RotateCcw size={13} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1569,6 +1629,7 @@ export default function App() {
               theme={theme}
               accentColor={accentColor}
               fontSize={fontSize}
+              indentScale={indentScale}
             />
           </div>
 
