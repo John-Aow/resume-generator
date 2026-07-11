@@ -4,7 +4,7 @@ import {
   Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles, Download,
   Check, RefreshCw, Layers, Palette, Clipboard, Cpu, FileJson,
   ArrowRight, ExternalLink, HelpCircle, Save, AlertCircle,
-  ALargeSmall, ListIndentIncrease, RotateCcw, Minus
+  ALargeSmall, ListIndentIncrease, RotateCcw, Minus, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { ResumeData, SAMPLE_RESUMES, DesignTheme } from "./types";
 import { ResumePreview } from "./components/ResumeTemplates";
@@ -106,6 +106,7 @@ export default function App() {
 
   // Editor navigation
   const [activeTab, setActiveTab] = useState<string>("personal");
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState<boolean>(false);
 
   // AI-related states
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
@@ -652,19 +653,6 @@ export default function App() {
     downloadAnchor.remove();
   };
 
-  const completionChecks = [
-    resumeData.personalInfo.name,
-    resumeData.personalInfo.title,
-    resumeData.personalInfo.email,
-    resumeData.personalInfo.phone,
-    resumeData.personalInfo.location,
-    resumeData.personalInfo.rawSummary,
-    resumeData.experiences.length > 0,
-    resumeData.skills.length > 0,
-    resumeData.education.length > 0
-  ];
-  const completionPercent = Math.round((completionChecks.filter(Boolean).length / completionChecks.length) * 100);
-
   if (isPrintMode) {
     return (
       <div id="print-canvas" className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col items-center p-4 sm:p-10 select-none">
@@ -748,11 +736,6 @@ export default function App() {
             <span>Autosaved</span>
           </div>
 
-          <div className="completion-status hidden lg:block">
-            <div className="flex justify-between gap-8"><span>{completionPercent}% complete</span></div>
-            <div className="completion-track"><span style={{ width: `${completionPercent}%` }} /></div>
-          </div>
-
           <button
             onClick={handleSaveToLocalStorage}
             className="save-action hidden items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
@@ -800,10 +783,21 @@ export default function App() {
       </header>
 
       {/* Main split viewport layout */}
-      <div className="studio-main flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-65px)]">
+      <div className={`studio-main flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-65px)] ${isEditorCollapsed ? "editor-collapsed" : ""}`}>
 
         {/* ==================== LEFT VIEWPORT: FORM EDITORS & DEPLOYER (Col: 5) ==================== */}
-        <section className="editor-panel lg:col-span-5 bg-slate-950 border-r border-slate-800 flex flex-col print-hide max-h-[calc(100vh-65px)] overflow-y-auto">
+        <section className={`editor-panel lg:col-span-5 bg-slate-950 border-r border-slate-800 flex flex-col print-hide max-h-[calc(100vh-65px)] overflow-y-auto ${isEditorCollapsed ? "is-panel-collapsed" : ""}`}>
+
+          <button
+            type="button"
+            onClick={() => setIsEditorCollapsed((value) => !value)}
+            aria-expanded={!isEditorCollapsed}
+            aria-label={isEditorCollapsed ? "Expand editor sidebar" : "Collapse editor sidebar"}
+            className="editor-rail-toggle"
+          >
+            {isEditorCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            <span>{isEditorCollapsed ? "Expand" : "Collapse"}</span>
+          </button>
 
           {/* Quick tab ribbon selector */}
           <nav className="editor-tabs flex flex-wrap border-b border-slate-800 bg-slate-900/60 p-2 gap-1 sticky top-0 z-30" aria-label="Resume sections">
@@ -850,7 +844,7 @@ export default function App() {
           </nav>
 
           {/* Editor Contents Panel */}
-          <div className="p-5 flex-1 space-y-6">
+          <div className="editor-content-area p-5 flex-1 space-y-6">
 
             {/* Success messages alerts */}
             {aiSuccessMessage && (
@@ -863,13 +857,6 @@ export default function App() {
             {/* TAB: PERSONAL */}
             {activeTab === "personal" && (
               <div className="space-y-4">
-                <div className="flex justify-between items-center pb-2 border-b border-slate-800">
-                  <h3 className="font-extrabold text-white text-md flex items-center gap-2">
-                    <MapPin size={16} className="text-blue-500" /> Personal Identity Details
-                  </h3>
-                  <span className="section-step text-[10px] font-semibold text-slate-500">Step 1 of 5</span>
-                </div>
-
                 {/* Profile Photo Uploader */}
                 <div className="bg-slate-950/40 border border-slate-800/60 p-3 rounded-lg flex items-center gap-4">
                   <div className="relative w-14 h-14 rounded-full overflow-hidden bg-slate-850 border border-slate-700 flex items-center justify-center shrink-0">
@@ -1598,7 +1585,9 @@ export default function App() {
                 </div>
               </div>
             </div>
+          </div>
 
+          <div className="formatting-toolbar print-hide">
             {/* Text editor-style typography controls */}
             <div className="editor-format-controls grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-800 pt-3">
               <div className="format-control flex items-center gap-2">
@@ -1659,25 +1648,27 @@ export default function App() {
             </div>
           </div>
 
-          {/* Actual A4 Sized Sheet */}
-          <div className="resume-a4-preview w-full max-w-[210mm] aspect-[210/297] shrink-0 overflow-hidden bg-white shadow-2xl rounded-sm">
-            <ResumePreview
-              data={resumeData}
-              theme={theme}
-              accentColor={accentColor}
-              fontSize={fontSize}
-              indentScale={indentScale}
-              leftColumnFontSize={leftColumnFontSize}
-              rightColumnFontSize={rightColumnFontSize}
-            />
-          </div>
+          <div className="resume-scroll-area">
+            {/* Actual A4 Sized Sheet */}
+            <div className="resume-a4-preview w-full max-w-[210mm] aspect-[210/297] shrink-0 overflow-hidden bg-white shadow-2xl rounded-sm">
+              <ResumePreview
+                data={resumeData}
+                theme={theme}
+                accentColor={accentColor}
+                fontSize={fontSize}
+                indentScale={indentScale}
+                leftColumnFontSize={leftColumnFontSize}
+                rightColumnFontSize={rightColumnFontSize}
+              />
+            </div>
 
-          {/* Print advice footer */}
-          <div className="w-full max-w-[21cm] mt-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-[11px] text-justify text-indigo-300 print-hide flex gap-2">
-            <HelpCircle size={14} className="mt-0.5 shrink-0" />
-            <p>
-              <strong>Ready to export?</strong> Choose Save to PDF, set margins to None, and enable Background graphics for the best result.
-            </p>
+            {/* Print advice footer */}
+            <div className="resume-export-tip w-full max-w-[21cm] mt-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-[11px] text-justify text-indigo-300 print-hide flex gap-2">
+              <HelpCircle size={14} className="mt-0.5 shrink-0" />
+              <p>
+                <strong>Ready to export?</strong> Choose Save to PDF, set margins to None, and enable Background graphics for the best result.
+              </p>
+            </div>
           </div>
         </section>
       </div>

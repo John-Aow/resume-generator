@@ -487,6 +487,38 @@ body { margin: 0; }
   background: #fff !important;
   border-color: #e5e7eb !important;
   color: #111827;
+  position: relative;
+}
+
+.editor-rail-toggle {
+  position: absolute;
+  top: 13px;
+  left: 126px;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 34px;
+  height: 32px;
+  color: #667085 !important;
+  background: #f8f9fb !important;
+  border: 1px solid #dfe3ea !important;
+  border-radius: 7px;
+  transition: left .2s ease, color .15s ease, background-color .15s ease;
+}
+.editor-rail-toggle span { display: none; }
+.editor-rail-toggle:hover { color: var(--studio-purple) !important; background:#f1edff !important; }
+.editor-panel:not(.is-panel-collapsed)::before {
+  content: "EDITOR";
+  position: absolute;
+  top: 23px;
+  left: 16px;
+  z-index: 44;
+  color: #98a2b3;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
 }
 
 .resume-studio .editor-tabs {
@@ -497,7 +529,7 @@ body { margin: 0; }
   flex-direction: column;
   flex-wrap: nowrap !important;
   min-height: calc(100vh - 72px);
-  padding: 20px 14px !important;
+  padding: 58px 14px 20px !important;
   background: #fff !important;
   border-right: 1px solid #e5e7eb !important;
   border-bottom: 0 !important;
@@ -521,6 +553,7 @@ body { margin: 0; }
   background: var(--studio-purple-soft) !important;
   box-shadow: none !important;
 }
+.resume-studio .editor-tabs button[class*="bg-blue"] svg { color: var(--studio-purple) !important; }
 
 .resume-studio .editor-panel > div:last-child {
   padding: 22px !important;
@@ -545,7 +578,7 @@ body { margin: 0; }
   border-color: var(--studio-purple) !important;
   box-shadow: 0 0 0 3px rgba(91,54,217,.1) !important;
 }
-.resume-studio .editor-panel button[class*="bg-blue"] { background: var(--studio-purple) !important; color:#fff !important; }
+.resume-studio .editor-content-area button[class*="bg-blue"] { background: var(--studio-purple) !important; color:#fff !important; }
 .resume-studio .editor-panel button { color: #5b6473; }
 .resume-studio .section-step { color: #6b7280 !important; background: #f0f2f5; }
 
@@ -553,14 +586,83 @@ body { margin: 0; }
   grid-column: span 6 / span 6;
   background: #f3f4f6 !important;
   border-left: 1px solid #e5e7eb;
+  height: calc(100vh - 72px);
+  max-height: calc(100vh - 72px);
+  overflow: hidden !important;
 }
+
+.resume-scroll-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 8px 28px;
+}
+.resume-scroll-area::-webkit-scrollbar { width: 8px; }
+.resume-scroll-area::-webkit-scrollbar-track { background: transparent; }
+.resume-scroll-area::-webkit-scrollbar-thumb { background: #c7ccd5; border-radius: 999px; }
+.resume-scroll-area::-webkit-scrollbar-thumb:hover { background: #aeb5c1; }
 
 .resume-studio .design-toolbar {
   position: static;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: center;
+  gap: 14px !important;
+  width: 100%;
+  max-width: 210mm !important;
+  min-height: 58px;
+  padding: 8px 12px !important;
   color: #374151;
   background: rgba(255,255,255,.96) !important;
   border-color: #dfe3ea !important;
-  box-shadow: 0 3px 12px rgba(15,23,42,.05) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(15,23,42,.045) !important;
+}
+.resume-studio .design-toolbar > div:first-child { min-width: 0; gap: 10px !important; }
+.resume-studio .formatting-toolbar {
+  width: 100%;
+  max-width: 210mm;
+  margin: -12px 0 14px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #dfe3ea;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 3px 8px rgba(15,23,42,.04);
+  position: relative;
+  z-index: 1;
+}
+.resume-studio .formatting-toolbar .editor-format-controls {
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px !important;
+  padding-top: 0 !important;
+  border-top: 0 !important;
+}
+.resume-studio .formatting-toolbar .column-font-controls { grid-column: 1 / -1; }
+.resume-studio .formatting-toolbar .format-control { padding-block: 3px; }
+
+@media (min-width: 1181px) {
+  .studio-main {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    transition: grid-template-columns .22s ease;
+  }
+  .studio-main.editor-collapsed { grid-template-columns: 72px minmax(0, 1fr) !important; }
+  .studio-main .editor-panel,
+  .studio-main .preview-panel { grid-column: auto !important; }
+  .editor-panel.is-panel-collapsed { grid-template-columns: 72px !important; }
+  .editor-panel.is-panel-collapsed .editor-content-area { display: none !important; }
+  .editor-panel.is-panel-collapsed .editor-tabs { width: 72px; padding-inline: 9px !important; }
+  .editor-panel.is-panel-collapsed .editor-tabs button { min-width: 52px; padding-inline: 0 !important; justify-content: center; }
+  .editor-panel.is-panel-collapsed .editor-tabs button span { display: none; }
+  .editor-panel.is-panel-collapsed .editor-rail-toggle { left: 19px; }
 }
 .resume-studio .design-toolbar [class*="text-slate"] { color: #667085 !important; }
 .resume-studio .design-toolbar [class*="bg-slate"] { background: #f5f6f8 !important; }
@@ -600,11 +702,14 @@ body { margin: 0; }
 .resume-studio .format-stepper button, .resume-studio .format-reset { color:#667085 !important; }
 .resume-studio .format-unit { color:#98a2b3; }
 .resume-studio .resume-a4-preview { box-shadow: 0 8px 24px rgba(15,23,42,.12) !important; }
-.resume-studio .preview-panel > div:last-child { color:#635b7e !important; background:#f4f1ff !important; border-color:#ddd6fe !important; }
+.resume-studio .resume-export-tip { color:#635b7e !important; background:#f4f1ff !important; border-color:#ddd6fe !important; }
 
 @media (max-width: 1180px) {
   .resume-studio .editor-panel { grid-column: span 12 / span 12; max-height:none !important; }
-  .resume-studio .preview-panel { grid-column: span 12 / span 12; }
+  .resume-studio .preview-panel { grid-column: span 12 / span 12; height: calc(100vh - 72px); max-height: calc(100vh - 72px); min-height: 0; }
+  .resume-studio .design-toolbar { grid-template-columns: 1fr; }
+  .editor-rail-toggle { display: none; }
+  .resume-studio .editor-tabs { padding-top: 20px !important; }
 }
 
 @media (max-width: 720px) {
