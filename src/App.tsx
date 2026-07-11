@@ -3,8 +3,8 @@ import {
   Mail, Phone, MapPin, Globe, Github, Linkedin, Briefcase, GraduationCap,
   Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles, Download,
   Check, RefreshCw, Layers, Palette, Clipboard, Cpu, FileJson,
-  ArrowRight, ExternalLink, HelpCircle, Save, BookOpen, AlertCircle,
-  ALargeSmall, ListIndentIncrease, RotateCcw
+  ArrowRight, ExternalLink, HelpCircle, Save, AlertCircle,
+  ALargeSmall, ListIndentIncrease, RotateCcw, Minus
 } from "lucide-react";
 import { ResumeData, SAMPLE_RESUMES, DesignTheme } from "./types";
 import { ResumePreview } from "./components/ResumeTemplates";
@@ -61,6 +61,16 @@ export default function App() {
       }
     }
     return DEFAULT_FONT_SIZE;
+  });
+
+  const [leftColumnFontSize, setLeftColumnFontSize] = useState<number>(() => {
+    const saved = Number(localStorage.getItem("resume_left_column_font_size"));
+    return Number.isFinite(saved) && saved > 0 ? clampFontSize(saved) : DEFAULT_FONT_SIZE;
+  });
+
+  const [rightColumnFontSize, setRightColumnFontSize] = useState<number>(() => {
+    const saved = Number(localStorage.getItem("resume_right_column_font_size"));
+    return Number.isFinite(saved) && saved > 0 ? clampFontSize(saved) : DEFAULT_FONT_SIZE;
   });
 
   const [indentScale, setIndentScale] = useState<number>(() => {
@@ -136,6 +146,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("resume_font_size", String(fontSize));
   }, [fontSize]);
+
+  useEffect(() => {
+    localStorage.setItem("resume_left_column_font_size", String(leftColumnFontSize));
+  }, [leftColumnFontSize]);
+
+  useEffect(() => {
+    localStorage.setItem("resume_right_column_font_size", String(rightColumnFontSize));
+  }, [rightColumnFontSize]);
 
   // Automatically persist selected resume indent scale to localStorage
   useEffect(() => {
@@ -634,6 +652,19 @@ export default function App() {
     downloadAnchor.remove();
   };
 
+  const completionChecks = [
+    resumeData.personalInfo.name,
+    resumeData.personalInfo.title,
+    resumeData.personalInfo.email,
+    resumeData.personalInfo.phone,
+    resumeData.personalInfo.location,
+    resumeData.personalInfo.rawSummary,
+    resumeData.experiences.length > 0,
+    resumeData.skills.length > 0,
+    resumeData.education.length > 0
+  ];
+  const completionPercent = Math.round((completionChecks.filter(Boolean).length / completionChecks.length) * 100);
+
   if (isPrintMode) {
     return (
       <div id="print-canvas" className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col items-center p-4 sm:p-10 select-none">
@@ -682,6 +713,8 @@ export default function App() {
             accentColor={accentColor}
             fontSize={fontSize}
             indentScale={indentScale}
+            leftColumnFontSize={leftColumnFontSize}
+            rightColumnFontSize={rightColumnFontSize}
           />
         </div>
       </div>
@@ -689,46 +722,40 @@ export default function App() {
   }
 
   return (
-    <div id="main-frame" className="min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col selection:bg-blue-500 selection:text-white">
+    <div id="main-frame" className="resume-studio min-h-screen bg-slate-900 text-slate-100 font-sans flex flex-col selection:bg-blue-500 selection:text-white">
       {/* Top Navigation Bar */}
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-3.5 flex justify-between items-center print-hide">
+      <header className="studio-header border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-3.5 flex justify-between items-center print-hide">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-2 rounded-xl text-white shadow-md shadow-blue-500/20">
-            <Cpu size={20} className="animate-pulse" />
+          <div className="studio-mark bg-gradient-to-tr from-blue-600 to-indigo-600 p-2 rounded-xl text-white shadow-md shadow-blue-500/20">
+            <Clipboard size={20} />
           </div>
           <div>
             <span className="text-xl font-extrabold text-white tracking-tight flex items-center gap-1.5 leading-none">
-              Resume Generator
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium px-2 py-0.5 rounded-full uppercase">Live IDE</span>
+              RESUMÉ
             </span>
           </div>
         </div>
 
         {/* Global Toolbar */}
         <div className="flex items-center gap-3">
-          {/* Quick loading state list */}
-          <div className="hidden lg:flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1">
-            <span className="text-xs font-semibold text-slate-400 pl-2 pr-1 flex items-center gap-1">
-              <BookOpen size={11} /> Profiles:
-            </span>
-            <button
-              onClick={() => handleLoadSample("software_engineer")}
-              className="text-xs font-semibold text-slate-200 hover:text-white px-2.5 py-1 hover:bg-slate-800 rounded-md transition"
-            >
-              Engineer
-            </button>
-            <span className="text-slate-800">|</span>
-            <button
-              onClick={() => handleLoadSample("product_manager")}
-              className="text-xs font-semibold text-slate-200 hover:text-white px-2.5 py-1 hover:bg-slate-800 rounded-md transition"
-            >
-              Product Mgr
-            </button>
+          <div className="template-selector hidden md:flex items-center gap-2">
+            <Layers size={15} />
+            <span>{theme === "modern" ? "Modern Professional" : theme.replaceAll("-", " ")}</span>
+          </div>
+
+          <div className="autosave-label hidden sm:flex items-center gap-1.5">
+            <Check size={14} />
+            <span>Autosaved</span>
+          </div>
+
+          <div className="completion-status hidden lg:block">
+            <div className="flex justify-between gap-8"><span>{completionPercent}% complete</span></div>
+            <div className="completion-track"><span style={{ width: `${completionPercent}%` }} /></div>
           </div>
 
           <button
             onClick={handleSaveToLocalStorage}
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700 bg-slate-900 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
+            className="save-action hidden items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
           >
             {isSavedLocal ? (
               <>
@@ -773,13 +800,13 @@ export default function App() {
       </header>
 
       {/* Main split viewport layout */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-65px)]">
+      <div className="studio-main flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-65px)]">
 
         {/* ==================== LEFT VIEWPORT: FORM EDITORS & DEPLOYER (Col: 5) ==================== */}
-        <section className="lg:col-span-5 bg-slate-950 border-r border-slate-800 flex flex-col print-hide max-h-[calc(100vh-65px)] overflow-y-auto">
+        <section className="editor-panel lg:col-span-5 bg-slate-950 border-r border-slate-800 flex flex-col print-hide max-h-[calc(100vh-65px)] overflow-y-auto">
 
           {/* Quick tab ribbon selector */}
-          <nav className="flex flex-wrap border-b border-slate-800 bg-slate-900/60 p-2 gap-1 sticky top-0 z-30">
+          <nav className="editor-tabs flex flex-wrap border-b border-slate-800 bg-slate-900/60 p-2 gap-1 sticky top-0 z-30" aria-label="Resume sections">
             <button
               onClick={() => setActiveTab("personal")}
               className={`flex-1 text-center py-2 px-1 text-xs font-medium rounded-lg transition flex flex-col items-center gap-1 min-w-[70px] ${activeTab === "personal" ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
@@ -840,7 +867,7 @@ export default function App() {
                   <h3 className="font-extrabold text-white text-md flex items-center gap-2">
                     <MapPin size={16} className="text-blue-500" /> Personal Identity Details
                   </h3>
-                  <span className="text-[10px] font-mono text-slate-500">SECTION_HEADER_1</span>
+                  <span className="section-step text-[10px] font-semibold text-slate-500">Step 1 of 5</span>
                 </div>
 
                 {/* Profile Photo Uploader */}
@@ -1518,26 +1545,33 @@ export default function App() {
         </section>
 
         {/* ==================== RIGHT VIEWPORT: LIVE PREVIEW CANVAS (Col: 7) ==================== */}
-        <section className="lg:col-span-7 bg-slate-900 p-4 sm:p-6 overflow-y-auto flex flex-col items-center">
+        <section className="preview-panel lg:col-span-7 bg-slate-900 p-4 sm:p-6 overflow-y-auto flex flex-col items-center">
 
           {/* Customizer Control Board sticky wrapper */}
-          <div className="w-full max-w-2xl bg-slate-950 p-3 rounded-xl border border-slate-800/80 mb-5 flex flex-col gap-3 shadow-lg print-hide">
+          <div className="design-toolbar w-full max-w-2xl bg-slate-950 p-3 rounded-xl border border-slate-800/80 mb-5 flex flex-col gap-3 shadow-lg print-hide">
 
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
               {/* Theme choices */}
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1"><Layers size={13} className="inline mr-1 text-blue-500" /> Theme:</span>
-                <div className="bg-slate-900 border border-slate-800 p-0.5 rounded-lg flex flex-wrap gap-0.5">
-                  {(["modern", "modern-short", "pboom", "executive", "formal-short", "split-sidebar", "creative", "developer"] as DesignTheme[]).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setTheme(t)}
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md transition ${theme === t ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
-                        }`}
-                    >
-                      {t === "split-sidebar" ? "Split-Sidebar" : t === "formal-short" ? "Formal-Short" : t}
-                    </button>
-                  ))}
+              <div className="theme-dropdown flex items-center gap-2">
+                <label htmlFor="resume-theme" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                  <Layers size={13} className="inline mr-1 text-blue-500" /> Theme:
+                </label>
+                <div className="theme-select-wrap">
+                  <select
+                    id="resume-theme"
+                    value={theme}
+                    onChange={(e) => setTheme(e.target.value as DesignTheme)}
+                    aria-label="Resume theme"
+                  >
+                    <option value="modern">Modern Professional</option>
+                    <option value="modern-short">Modern Compact</option>
+                    <option value="pboom">Pboom</option>
+                    <option value="executive">Executive</option>
+                    <option value="formal-short">Formal Compact</option>
+                    <option value="split-sidebar">Split Sidebar</option>
+                    <option value="creative">Creative</option>
+                    <option value="developer">Developer</option>
+                  </select>
                 </div>
               </div>
 
@@ -1565,65 +1599,63 @@ export default function App() {
               </div>
             </div>
 
-            {/* Font size control */}
-            <div className="grid grid-cols-1 gap-3 border-t border-slate-800 pt-3">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <div className="flex items-center justify-between sm:justify-start gap-2 sm:w-36">
+            {/* Text editor-style typography controls */}
+            <div className="editor-format-controls grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-800 pt-3">
+              <div className="format-control flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-20">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
                     <ALargeSmall size={13} className="inline mr-1 text-emerald-500" /> Font:
                   </span>
-                  <span className="text-[10px] font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md tabular-nums">
-                    {fontSize}%
-                  </span>
                 </div>
-                <input
-                  type="range"
-                  min="80"
-                  max="120"
-                  step="1"
-                  value={fontSize}
-                  onChange={(e) => setFontSize(clampFontSize(Number(e.target.value)))}
-                  aria-label="Resume font size"
-                  className="w-full accent-emerald-500 cursor-pointer"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFontSize(DEFAULT_FONT_SIZE)}
-                  title="Reset font size"
-                  className="self-start sm:self-auto inline-flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 bg-slate-900 rounded-md w-8 h-8 transition"
-                >
-                  <RotateCcw size={13} />
-                </button>
+                <div className="format-stepper flex items-center ml-auto" role="group" aria-label="Resume font size">
+                  <button type="button" onClick={() => setFontSize(clampFontSize(fontSize - 1))} aria-label="Decrease font size"><Minus size={13} /></button>
+                  <input type="number" min="80" max="120" value={fontSize} onChange={(e) => setFontSize(clampFontSize(Number(e.target.value)))} aria-label="Font size percentage" />
+                  <span className="format-unit">%</span>
+                  <button type="button" onClick={() => setFontSize(clampFontSize(fontSize + 1))} aria-label="Increase font size"><Plus size={13} /></button>
+                </div>
+                <button type="button" onClick={() => setFontSize(DEFAULT_FONT_SIZE)} title="Reset font size" aria-label="Reset font size" className="format-reset"><RotateCcw size={13} /></button>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <div className="flex items-center justify-between sm:justify-start gap-2 sm:w-36">
+              <div className="format-control flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-20">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
                     <ListIndentIncrease size={13} className="inline mr-1 text-cyan-500" /> Indent:
                   </span>
-                  <span className="text-[10px] font-bold text-slate-200 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md tabular-nums">
-                    {indentScale}%
-                  </span>
                 </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="150"
-                  step="1"
-                  value={indentScale}
-                  onChange={(e) => setIndentScale(clampIndentScale(Number(e.target.value)))}
-                  aria-label="Resume indent scale"
-                  className="w-full accent-cyan-500 cursor-pointer"
-                />
-                <button
-                  type="button"
-                  onClick={() => setIndentScale(DEFAULT_INDENT_SCALE)}
-                  title="Reset indent scale"
-                  className="self-start sm:self-auto inline-flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 bg-slate-900 rounded-md w-8 h-8 transition"
-                >
-                  <RotateCcw size={13} />
-                </button>
+                <div className="format-stepper flex items-center ml-auto" role="group" aria-label="Resume indent scale">
+                  <button type="button" onClick={() => setIndentScale(clampIndentScale(indentScale - 5))} aria-label="Decrease indent"><Minus size={13} /></button>
+                  <input type="number" min="50" max="150" step="5" value={indentScale} onChange={(e) => setIndentScale(clampIndentScale(Number(e.target.value)))} aria-label="Indent percentage" />
+                  <span className="format-unit">%</span>
+                  <button type="button" onClick={() => setIndentScale(clampIndentScale(indentScale + 5))} aria-label="Increase indent"><Plus size={13} /></button>
+                </div>
+                <button type="button" onClick={() => setIndentScale(DEFAULT_INDENT_SCALE)} title="Reset indent" aria-label="Reset indent" className="format-reset"><RotateCcw size={13} /></button>
               </div>
+
+              {(theme === "split-sidebar" || theme === "pboom") && (
+                <div className="column-font-controls sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="format-control flex items-center gap-2">
+                    <span className="column-font-label text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Left column</span>
+                    <div className="format-stepper flex items-center ml-auto" role="group" aria-label="Left column font size">
+                      <button type="button" onClick={() => setLeftColumnFontSize(clampFontSize(leftColumnFontSize - 1))} aria-label="Decrease left column font"><Minus size={13} /></button>
+                      <input type="number" min="80" max="120" value={leftColumnFontSize} onChange={(e) => setLeftColumnFontSize(clampFontSize(Number(e.target.value)))} aria-label="Left column font percentage" />
+                      <span className="format-unit">%</span>
+                      <button type="button" onClick={() => setLeftColumnFontSize(clampFontSize(leftColumnFontSize + 1))} aria-label="Increase left column font"><Plus size={13} /></button>
+                    </div>
+                    <button type="button" onClick={() => setLeftColumnFontSize(DEFAULT_FONT_SIZE)} title="Reset left column font" aria-label="Reset left column font" className="format-reset"><RotateCcw size={13} /></button>
+                  </div>
+
+                  <div className="format-control flex items-center gap-2">
+                    <span className="column-font-label text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Right column</span>
+                    <div className="format-stepper flex items-center ml-auto" role="group" aria-label="Right column font size">
+                      <button type="button" onClick={() => setRightColumnFontSize(clampFontSize(rightColumnFontSize - 1))} aria-label="Decrease right column font"><Minus size={13} /></button>
+                      <input type="number" min="80" max="120" value={rightColumnFontSize} onChange={(e) => setRightColumnFontSize(clampFontSize(Number(e.target.value)))} aria-label="Right column font percentage" />
+                      <span className="format-unit">%</span>
+                      <button type="button" onClick={() => setRightColumnFontSize(clampFontSize(rightColumnFontSize + 1))} aria-label="Increase right column font"><Plus size={13} /></button>
+                    </div>
+                    <button type="button" onClick={() => setRightColumnFontSize(DEFAULT_FONT_SIZE)} title="Reset right column font" aria-label="Reset right column font" className="format-reset"><RotateCcw size={13} /></button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1635,6 +1667,8 @@ export default function App() {
               accentColor={accentColor}
               fontSize={fontSize}
               indentScale={indentScale}
+              leftColumnFontSize={leftColumnFontSize}
+              rightColumnFontSize={rightColumnFontSize}
             />
           </div>
 
@@ -1642,7 +1676,7 @@ export default function App() {
           <div className="w-full max-w-[21cm] mt-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-[11px] text-justify text-indigo-300 print-hide flex gap-2">
             <HelpCircle size={14} className="mt-0.5 shrink-0" />
             <p>
-              <strong>Print & Export Advice:</strong> Clicking **Generate PDF / Print** opens your native browser page compilation dialog. Choose **Destination: Save to PDF**, set **Margins: None**, and enable **Background Graphics** to capture the exact layout of your resume perfectly!
+              <strong>Ready to export?</strong> Choose Save to PDF, set margins to None, and enable Background graphics for the best result.
             </p>
           </div>
         </section>

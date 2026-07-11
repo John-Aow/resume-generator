@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useLayoutEffect, useRef, useState } from "react";
 import { ResumeData, DesignTheme } from "../types";
 import { Mail, Phone, MapPin, Globe, Github, Linkedin, Briefcase, GraduationCap, Code, FolderGit, Award, Languages } from "lucide-react";
 
@@ -8,9 +8,11 @@ interface ResumePreviewProps {
   accentColor: string; // Tailwind color class, e.g., 'blue', 'emerald', 'slate'
   fontSize?: number;
   indentScale?: number;
+  leftColumnFontSize?: number;
+  rightColumnFontSize?: number;
 }
 
-const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor, fontSize = 100, indentScale = 100 }) => {
+const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor, fontSize = 100, indentScale = 100, leftColumnFontSize = 100, rightColumnFontSize = 100 }) => {
   const { personalInfo, experiences, education, projects, skills, certifications, languages } = data;
 
   // Setup styling maps based on theme selection
@@ -67,9 +69,9 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
   const sectionHeaderStyle = {
     modern: "text-[15px] font-semibold tracking-wider text-slate-900 uppercase border-b pb-1 mb-3 flex items-center gap-2",
     "modern-short": "text-[13px] font-bold tracking-wider text-slate-900 uppercase border-b pb-0.5 mb-2 flex items-center gap-1.5",
-    executive: "text-[16px] font-bold tracking-wide text-slate-805 border-b-2 pb-0.5 mb-3.5 flex items-center gap-2 italic",
+    executive: "text-[16px] font-bold tracking-wide text-slate-800 border-b-2 pb-1 mb-3.5 flex items-center gap-2",
     "formal-short": "text-[13px] font-bold tracking-wider text-slate-900 uppercase border-b pb-0.5 mb-2 block",
-    creative: "text-md font-bold tracking-tight text-neutral-900 mb-3 flex items-center gap-2",
+    creative: "text-base font-bold tracking-tight text-neutral-900 mb-3 flex items-center gap-2",
     developer: "text-xs font-bold text-zinc-950 uppercase mb-3.5 flex items-center gap-2 p-1 bg-zinc-200 border-l-4",
     "split-sidebar": "text-[11.5px] font-bold tracking-[0.2em] text-slate-800 uppercase mb-3 block",
     pboom: "text-[18px] font-extrabold text-[#303235] mb-2 flex items-center gap-2"
@@ -86,10 +88,10 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
         target="_blank" 
         referrerPolicy="no-referrer"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 hover:underline text-xs text-slate-500 print:text-slate-800 break-all"
+        className="resume-link inline-flex items-center gap-1.5 hover:underline text-xs text-slate-500 print:text-slate-800"
       >
         {icon}
-        <span className="break-all">{cleanUrl}</span>
+        <span>{cleanUrl}</span>
       </a>
     );
   };
@@ -99,8 +101,11 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
       id="resume-sheet"
       style={{
         "--resume-font-scale": Math.min(120, Math.max(80, fontSize)) / 100,
-        "--resume-indent-scale": Math.min(150, Math.max(50, indentScale)) / 100
+        "--resume-indent-scale": Math.min(150, Math.max(50, indentScale)) / 100,
+        "--resume-left-column-font-scale": Math.min(120, Math.max(80, leftColumnFontSize)) / 100,
+        "--resume-right-column-font-scale": Math.min(120, Math.max(80, rightColumnFontSize)) / 100
       } as React.CSSProperties}
+      data-theme={theme}
       className={`w-full mx-auto ${sheetPaddingClass} shadow-lg border border-slate-150 rounded-md print:shadow-none print:border-none print:p-0 ${fontClass}`}
     >
       
@@ -236,7 +241,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                     <p className="text-xs text-slate-500 mb-2">{proj.description}</p>
                     <div className="flex flex-wrap gap-1 mb-2">
                       {proj.technologies.map((t, idx) => t.trim() && (
-                        <span key={idx} className="bg-slate-100 text-slate-605 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-mono">
+                        <span key={idx} className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded border border-slate-200 font-mono">
                           {t}
                         </span>
                       ))}
@@ -383,11 +388,11 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                             {proj.liveUrl && renderLink(proj.liveUrl, <Globe size={11} className="text-slate-400" />)}
                           </div>
                         </div>
-                        <p className="text-[11px] text-slate-500 leading-slug mb-1">{proj.description}</p>
+                        <p className="text-[11px] text-slate-500 leading-snug mb-1">{proj.description}</p>
                         {proj.technologies.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-1">
                             {proj.technologies.map((t, idx) => t.trim() && (
-                              <span key={idx} className="bg-slate-50 text-slate-600 text-[9px] px-1.5 py-0.2 rounded border border-slate-150 font-mono">
+                              <span key={idx} className="bg-slate-50 text-slate-600 text-[9px] px-1.5 py-0.5 rounded border border-slate-200 font-mono">
                                 {t}
                               </span>
                             ))}
@@ -474,7 +479,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                   </h2>
                   <div className="flex flex-wrap gap-1.5">
                     {languages.map((l) => (
-                      <span key={l.id} className="text-[11px] text-slate-705 bg-slate-50 py-0.5 px-2 rounded border border-slate-150 font-medium">
+                      <span key={l.id} className="text-[11px] text-slate-700 bg-slate-50 py-0.5 px-2 rounded border border-slate-200 font-medium">
                         {l.name} <span className={`text-[9px] ${accentText} font-semibold uppercase`}>({l.level})</span>
                       </span>
                     ))}
@@ -550,7 +555,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                           <span>
                             {exp.role} <span className="font-normal text-slate-400">@</span> <span className={`${accentText} font-semibold`}>{exp.company}</span>
                           </span>
-                          <span className="text-slate-505 font-normal italic text-[10px] whitespace-nowrap">
+                          <span className="text-slate-500 font-normal italic text-[10px] whitespace-nowrap">
                             {exp.startDate} – {exp.current ? "Present" : exp.endDate}
                           </span>
                         </div>
@@ -689,6 +694,10 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                   src={personalInfo.photoUrl} 
                   alt={personalInfo.name} 
                   className="w-full h-full object-cover"
+                  style={{
+                    objectPosition: `${personalInfo.photoCropX ?? 50}% ${personalInfo.photoCropY ?? 50}%`,
+                    transform: `scale(${(personalInfo.photoZoom ?? 100) / 100})`
+                  }}
                   referrerPolicy="no-referrer"
                 />
               ) : (
@@ -712,7 +721,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
           {/* Grid Body */}
           <div className="grid grid-cols-12 gap-4 p-3.5">
             {/* Left Column (Narrower Sidebar) */}
-            <div className="col-span-3 space-y-3.5 pr-3 border-r border-slate-200/85">
+            <div className="resume-column-left col-span-3 space-y-3.5 pr-3 border-r border-slate-200/85">
               {/* CONTACT */}
               <div>
                 <h2 className="text-[10px] font-extrabold tracking-[0.2em] text-slate-900 uppercase border-b border-slate-200 pb-0.5 mb-2">
@@ -818,7 +827,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
             </div>
 
             {/* Right Column (Wider Body) */}
-            <div className="col-span-9 space-y-4">
+            <div className="resume-column-right col-span-9 space-y-4">
               {/* PROFESSIONAL SUMMARY */}
               {personalInfo.rawSummary && (
                 <div>
@@ -943,13 +952,17 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
 
           <div className="relative grid grid-cols-12 gap-5 px-8 py-9">
             {/* Left framed profile rail */}
-            <aside className="col-span-5 border-2 border-[#303235] px-7 pt-7 pb-6 min-h-[257mm]">
+            <aside className="resume-column-left col-span-5 border-2 border-[#303235] px-7 pt-7 pb-6 min-h-[257mm]">
               <div className="aspect-[4/4.45] w-full bg-[#d8d1cc] overflow-hidden mb-9">
                 {personalInfo.photoUrl ? (
                   <img
                     src={personalInfo.photoUrl}
                     alt={personalInfo.name}
                     className="w-full h-full object-cover"
+                    style={{
+                      objectPosition: `${personalInfo.photoCropX ?? 50}% ${personalInfo.photoCropY ?? 50}%`,
+                      transform: `scale(${(personalInfo.photoZoom ?? 100) / 100})`
+                    }}
                     referrerPolicy="no-referrer"
                   />
                 ) : (
@@ -1039,7 +1052,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
             </aside>
 
             {/* Right work column */}
-            <main className="col-span-7 pt-5 pb-2">
+            <main className="resume-column-right col-span-7 pt-5 pb-2">
               <header className="h-[103px] flex flex-col justify-center">
                 <h1 className="text-[30px] leading-none tracking-[0.14em] uppercase text-[#303235]">
                   {personalInfo.name || "Insert Name"}
@@ -1245,7 +1258,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1 border-t print:break-inside-avoid">
               {certifications.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-bold font-serif italic text-slate-805 mb-2">Certifications</h3>
+                  <h3 className="text-xs font-bold font-serif text-slate-800 mb-2">Certifications</h3>
                   <ul className="list-disc list-inside text-xs text-slate-600 space-y-1">
                     {certifications.map((c) => (
                       <li key={c.id}>
@@ -1257,7 +1270,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
               )}
               {languages.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-bold font-serif italic text-slate-805 mb-2">Languages</h3>
+                  <h3 className="text-xs font-bold font-serif text-slate-800 mb-2">Languages</h3>
                   <p className="text-xs text-slate-600">
                     {languages.map((l) => `${l.name} (${l.level})`).join(", ")}
                   </p>
@@ -1531,7 +1544,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                     <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">{grp.category}</h4>
                     <div className="flex flex-wrap gap-1">
                       {grp.items.map((val, idx) => val.trim() && (
-                        <span key={idx} className="bg-white text-zinc-850 px-2 py-0.5 border border-zinc-200 rounded text-[11px] font-semibold">
+                        <span key={idx} className="bg-white text-zinc-800 px-2 py-0.5 border border-zinc-200 rounded text-[11px] font-semibold">
                           {val}
                         </span>
                       ))}
@@ -1603,7 +1616,7 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                       </div>
                     </div>
                     <p className="text-[11px] text-zinc-500 mb-1.5">{p.description}</p>
-                    <ul className="list-none space-y-0.5 text-[11px] text-zinc-650">
+                    <ul className="list-none space-y-0.5 text-[11px] text-zinc-600">
                       {p.bullets.map((bl, bIdx) => bl.trim() && (
                         <li key={bIdx} className="pl-2 border-l-2 border-zinc-300">{bl}</li>
                       ))}
@@ -1620,14 +1633,43 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
 };
 
 export const ResumePreview: FC<ResumePreviewProps> = (props) => {
-  const isShort = props.theme === "modern-short" || props.theme === "formal-short" || props.theme === "split-sidebar" || props.theme === "pboom";
-  const marginHeightClass = isShort ? "h-[0.5cm]" : "h-[1.5cm]";
-  const paddingXClass = isShort ? "print:px-[0.6cm]" : "print:px-[1.5cm]";
+  const marginHeightClass = "h-[0.5cm]";
+  const paddingXClass = "print:px-[0.6cm]";
+  const pageRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLTableElement>(null);
+  const [pageScale, setPageScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const page = pageRef.current;
+    const content = contentRef.current;
+    if (!page || !content) return;
+
+    const fitContent = () => {
+      const availableWidth = page.clientWidth;
+      const availableHeight = availableWidth * (297 / 210);
+      const contentWidth = 794;
+      // Preserve the full A4 canvas when content is short; only scale down when
+      // the actual content exceeds one page.
+      const contentHeight = Math.max(1123, content.scrollHeight);
+      if (!availableWidth || !contentHeight) return;
+      setPageScale(Math.min(availableWidth / contentWidth, availableHeight / contentHeight));
+    };
+
+    fitContent();
+    const observer = new ResizeObserver(fitContent);
+    observer.observe(page);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [props]);
 
   return (
-    <div className="w-full">
+    <div ref={pageRef} className="resume-page-frame relative w-full aspect-[210/297] overflow-hidden">
       {/* High-fidelity layout wrapper to hide system metadata completely and repeat perfect blank margins */}
-      <table className="w-full border-collapse border-none m-0 p-0 table-fixed">
+      <table
+        ref={contentRef}
+        className="resume-page-table border-collapse border-none m-0 p-0 table-fixed"
+        style={{ width: 794, transform: `scale(${pageScale})`, transformOrigin: "top left" }}
+      >
         <thead className="hidden print:table-header-group">
           <tr>
             <td className={`${marginHeightClass} border-none p-0`}></td>
