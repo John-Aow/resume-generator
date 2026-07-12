@@ -1687,7 +1687,7 @@ export default function App() {
                   >
                     <option value="modern">Modern Professional</option>
                     <option value="modern-short">Modern Compact</option>
-                    <option value="pboom">Pboom</option>
+                    <option value="pboom">Thai Style</option>
                     <option value="executive">Executive</option>
                     <option value="formal-short">Formal Compact</option>
                     <option value="split-sidebar">Split Sidebar</option>

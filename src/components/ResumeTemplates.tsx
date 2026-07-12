@@ -1062,7 +1062,18 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                 </p>
               </header>
 
-              <section className="pt-4">
+              {personalInfo.rawSummary && (
+                <section className="thai-style-summary border-y border-[#303235]/30 py-3 mb-3">
+                  <h2 className="text-[13px] font-extrabold tracking-[0.12em] uppercase text-[#c17a4f] mb-1.5">
+                    Professional Summary
+                  </h2>
+                  <p className="text-[10.5px] leading-relaxed text-[#303235]">
+                    {personalInfo.rawSummary}
+                  </p>
+                </section>
+              )}
+
+              <section className="pt-2">
                 <h2 className="text-[21px] font-extrabold text-[#303235] flex items-center gap-3 mb-4">
                   <span className="w-6 h-6 border border-[#303235] flex items-center justify-center">
                     <Briefcase size={15} />
