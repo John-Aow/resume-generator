@@ -79,7 +79,7 @@ export interface ResumeData {
   languages: Language[];
 }
 
-export type DesignTheme = "modern" | "executive" | "creative" | "developer" | "modern-short" | "formal-short" | "split-sidebar" | "pboom";
+export type DesignTheme = "modern" | "executive" | "creative" | "developer" | "modern-short" | "formal-short" | "split-sidebar" | "pboom" | "ats";
 
 export const SAMPLE_RESUMES: Record<string, { label: string; data: ResumeData }> = {
   software_engineer: {

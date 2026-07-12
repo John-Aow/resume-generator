@@ -78,6 +78,16 @@
 #resume-sheet[data-theme="developer"] > div { gap: 0.7rem; }
 #resume-sheet[data-theme="developer"] h2 { border-radius: 0.15rem; }
 
+/* ATS: conservative single-column document with parser-safe hierarchy. */
+#resume-sheet[data-theme="ats"] { padding: 1.25rem 1.55rem; }
+#resume-sheet[data-theme="ats"] > div { gap: 0.6rem; }
+#resume-sheet[data-theme="ats"] h1,
+#resume-sheet[data-theme="ats"] h2,
+#resume-sheet[data-theme="ats"] h3 { font-family: Arial, Helvetica, sans-serif; }
+#resume-sheet[data-theme="ats"] p,
+#resume-sheet[data-theme="ats"] li { font-family: Arial, Helvetica, sans-serif; }
+#resume-sheet[data-theme="ats"] a { color: #000; text-decoration: none; }
+
 /* Pboom: keep the framed portrait rail anchored to the A4 composition. */
 #resume-sheet[data-theme="pboom"] aside { min-height: 0; height: 277mm; }
 #resume-sheet[data-theme="pboom"] article { break-inside: avoid; }

@@ -24,7 +24,8 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
     creative: "font-sans text-neutral-800 bg-white",
     developer: "font-mono text-zinc-900 bg-zinc-50/50",
     "split-sidebar": "font-sans text-slate-800 bg-white",
-    pboom: "font-sans text-[#2f3032] bg-[#f5f3f0]"
+    pboom: "font-sans text-[#2f3032] bg-[#f5f3f0]",
+    ats: "font-sans text-black bg-white"
   }[theme];
 
   // Colors mapping for themes
@@ -63,7 +64,8 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
     creative: "list-none space-y-1 text-neutral-600 text-sm",
     developer: "list-none space-y-1 text-zinc-700 text-xs text-[12px] leading-relaxed",
     "split-sidebar": "list-disc list-inside space-y-0.5 text-slate-600 text-[11.5px] leading-relaxed",
-    pboom: "list-disc list-outside ml-4 space-y-0.5 text-[#303235] text-[9.5px] leading-normal"
+    pboom: "list-disc list-outside ml-4 space-y-0.5 text-[#303235] text-[9.5px] leading-normal",
+    ats: "list-disc list-outside ml-4 space-y-0.5 text-black text-[11px] leading-normal"
   }[theme];
 
   const sectionHeaderStyle = {
@@ -74,7 +76,8 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
     creative: "text-base font-bold tracking-tight text-neutral-900 mb-3 flex items-center gap-2",
     developer: "text-xs font-bold text-zinc-950 uppercase mb-3.5 flex items-center gap-2 p-1 bg-zinc-200 border-l-4",
     "split-sidebar": "text-[11.5px] font-bold tracking-[0.2em] text-slate-800 uppercase mb-3 block",
-    pboom: "text-[18px] font-extrabold text-[#303235] mb-2 flex items-center gap-2"
+    pboom: "text-[18px] font-extrabold text-[#303235] mb-2 flex items-center gap-2",
+    ats: "text-[13px] font-bold tracking-[0.08em] text-black uppercase border-b border-black pb-0.5 mb-2 block"
   }[theme];
   const sheetPaddingClass = theme === "pboom" ? "p-0" : "p-6 sm:p-8 md:p-10";
 
@@ -1136,6 +1139,100 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
               </section>
             </main>
           </div>
+        </div>
+      )}
+
+      {/* ==================== ATS FRIENDLY ==================== */}
+      {theme === "ats" && (
+        <div className="ats-resume space-y-3 text-black">
+          <header className="text-center border-b-2 border-black pb-2">
+            <h1 className="text-[28px] font-bold tracking-tight uppercase">{personalInfo.name || "Insert Name"}</h1>
+            <p className="text-[15px] font-semibold mt-0.5">{personalInfo.title || "Professional Role"}</p>
+            <p className="text-[10.5px] mt-1">
+              {[personalInfo.email, personalInfo.phone, personalInfo.location].filter(Boolean).join(" | ")}
+            </p>
+            <p className="text-[10.5px]">
+              {[personalInfo.linkedin, personalInfo.github, personalInfo.website].filter(Boolean).join(" | ")}
+            </p>
+          </header>
+
+          {personalInfo.rawSummary && (
+            <section>
+              <h2 className={sectionHeaderStyle}>Professional Summary</h2>
+              <p className="text-[11px] leading-relaxed">{personalInfo.rawSummary}</p>
+            </section>
+          )}
+
+          {skills.length > 0 && (
+            <section>
+              <h2 className={sectionHeaderStyle}>Core Skills</h2>
+              <div className="space-y-1 text-[10.5px]">
+                {skills.map((group) => (
+                  <p key={group.id}><strong>{group.category}:</strong> {group.items.filter(Boolean).join(", ")}</p>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {experiences.length > 0 && (
+            <section>
+              <h2 className={sectionHeaderStyle}>Professional Experience</h2>
+              <div className="space-y-3">
+                {experiences.map((experience) => (
+                  <article key={experience.id}>
+                    <div className="flex justify-between gap-4 text-[11.5px] font-bold">
+                      <span>{experience.role} | {experience.company}</span>
+                      <span className="whitespace-nowrap">{experience.startDate} - {experience.current ? "Present" : experience.endDate}</span>
+                    </div>
+                    {experience.location && <p className="text-[10.5px] font-medium mb-1">{experience.location}</p>}
+                    <ul className={bulletStyle}>
+                      {experience.bullets.map((bullet, index) => bullet.trim() && <li key={index}>{bullet}</li>)}
+                    </ul>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {education.length > 0 && (
+            <section>
+              <h2 className={sectionHeaderStyle}>Education</h2>
+              <div className="space-y-2">
+                {education.map((item) => (
+                  <div key={item.id} className="text-[10.5px]">
+                    <div className="flex justify-between gap-4 font-bold">
+                      <span>{item.degree}{item.field ? `, ${item.field}` : ""}</span>
+                      <span className="whitespace-nowrap">{item.startDate} - {item.current ? "Present" : item.endDate}</span>
+                    </div>
+                    <p>{item.institution}{item.location ? ` | ${item.location}` : ""}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {projects.length > 0 && (
+            <section>
+              <h2 className={sectionHeaderStyle}>Projects</h2>
+              <div className="space-y-2">
+                {projects.map((project) => (
+                  <article key={project.id}>
+                    <p className="text-[10.5px] font-bold">{project.title}{project.technologies.length ? ` | ${project.technologies.join(", ")}` : ""}</p>
+                    {project.description && <p className="text-[10.5px]">{project.description}</p>}
+                    <ul className={bulletStyle}>{project.bullets.map((bullet, index) => bullet.trim() && <li key={index}>{bullet}</li>)}</ul>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {(certifications.length > 0 || languages.length > 0) && (
+            <section>
+              <h2 className={sectionHeaderStyle}>Additional Information</h2>
+              {certifications.length > 0 && <p className="text-[10.5px]"><strong>Certifications:</strong> {certifications.map((item) => `${item.name}${item.issuer ? ` (${item.issuer})` : ""}`).join("; ")}</p>}
+              {languages.length > 0 && <p className="text-[10.5px]"><strong>Languages:</strong> {languages.map((item) => `${item.name} (${item.level})`).join(", ")}</p>}
+            </section>
+          )}
         </div>
       )}
 

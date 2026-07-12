@@ -1689,6 +1689,7 @@ export default function App() {
                     aria-label="Resume theme"
                   >
                     <option value="modern">Modern Professional</option>
+                    <option value="ats">ATS Friendly</option>
                     <option value="modern-short">Modern Compact</option>
                     <option value="pboom">Thai Style</option>
                     <option value="executive">Executive</option>
