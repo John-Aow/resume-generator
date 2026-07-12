@@ -1644,8 +1644,6 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
 };
 
 export const ResumePreview: FC<ResumePreviewProps> = (props) => {
-  const marginHeightClass = "h-[0.5cm]";
-  const paddingXClass = "print:px-[0.6cm]";
   const pageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLTableElement>(null);
   const [pageScale, setPageScale] = useState(1);
@@ -1681,23 +1679,13 @@ export const ResumePreview: FC<ResumePreviewProps> = (props) => {
         className="resume-page-table border-collapse border-none m-0 p-0 table-fixed"
         style={{ width: 794, transform: `scale(${pageScale})`, transformOrigin: "top left" }}
       >
-        <thead className="hidden print:table-header-group">
-          <tr>
-            <td className={`${marginHeightClass} border-none p-0`}></td>
-          </tr>
-        </thead>
         <tbody>
           <tr>
-            <td className={`p-0 border-none ${paddingXClass} align-top text-left`}>
+            <td className="p-0 border-none align-top text-left">
               <ResumePreviewContent {...props} />
             </td>
           </tr>
         </tbody>
-        <tfoot className="hidden print:table-footer-group">
-          <tr>
-            <td className={`${marginHeightClass} border-none p-0`}></td>
-          </tr>
-        </tfoot>
       </table>
     </div>
   );

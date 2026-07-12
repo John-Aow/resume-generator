@@ -7,6 +7,12 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-wrap: anywhere;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+#resume-sheet * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 /* Resume-wide rhythm and readability. Theme markup stays distinct while these
@@ -204,8 +210,8 @@
 /* High-fidelity print styles */
 @media print {
   @page {
-    size: auto;
-    margin: 0 !important; /* Removes default browser headers (page title/URL) and footers (date/page numbers) */
+    size: A4 portrait;
+    margin: 0 !important;
   }
 
   body {
@@ -213,6 +219,8 @@
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
   #print-canvas {
@@ -227,25 +235,19 @@
     height: 297mm !important;
     aspect-ratio: auto !important;
     overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-hide {
     display: none !important;
   }
   
-  /* Custom safe margins on the actual sheet are managed via page margins */
+  /* Preserve the exact same theme composition used by the editor preview. */
   #resume-sheet {
     box-shadow: none !important;
     border: none !important;
-    padding: 0 !important; /* Zero padding in print since @page defines the page constraints */
     margin: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    background-color: transparent !important;
-    height: 287mm !important;
-    min-height: 287mm !important;
-    max-height: 287mm !important;
-    overflow: hidden !important;
   }
 
   /* Force page breaks gracefully */

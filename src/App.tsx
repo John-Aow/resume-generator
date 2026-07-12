@@ -197,11 +197,14 @@ export default function App() {
         setIndentScale(clampIndentScale(urlIndentScale));
       }
 
-      // Let font downloading and browser rendering settle before auto-firing print
-      const timer = setTimeout(() => {
-        window.print();
-      }, 1000);
-      return () => clearTimeout(timer);
+      // Let font downloading and browser rendering settle before auto-firing print.
+      // `preview=true` keeps the exact print layout visible for visual QA.
+      if (params.get("preview") !== "true") {
+        const timer = setTimeout(() => {
+          window.print();
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
     }
   }, []);
 
