@@ -98,6 +98,55 @@
 #resume-sheet h2 { break-after: avoid; }
 #resume-sheet h3 { break-after: avoid; }
 
+/* Editorial typography: readable at print size without artificial word gaps. */
+#resume-sheet h1 {
+  line-height: 1.06 !important;
+  text-wrap: balance;
+}
+#resume-sheet h2 {
+  line-height: 1.18 !important;
+  text-wrap: balance;
+}
+#resume-sheet h3 {
+  line-height: 1.25 !important;
+  text-wrap: pretty;
+}
+#resume-sheet p,
+#resume-sheet li {
+  line-height: 1.42;
+  text-align: left;
+  text-wrap: pretty;
+  word-spacing: normal;
+  letter-spacing: normal;
+  hyphens: none;
+}
+#resume-sheet [class*="text-justify"] { text-align: left !important; }
+#resume-sheet li::marker { color: currentColor; }
+#resume-sheet a { text-underline-offset: 2px; }
+
+/* Multi-column templates retain their full A4 composition with short content. */
+#resume-sheet[data-theme="split-sidebar"] > div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+}
+#resume-sheet[data-theme="split-sidebar"] > div > div:nth-child(2) {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
+}
+#resume-sheet[data-theme="split-sidebar"] .resume-column-left,
+#resume-sheet[data-theme="split-sidebar"] .resume-column-right { min-height: 100%; }
+
+#resume-sheet[data-theme="pboom"] > div { height: 100%; min-height: 100%; }
+#resume-sheet[data-theme="pboom"] > div > div:nth-child(2) {
+  min-height: 100%;
+  align-items: stretch;
+}
+#resume-sheet[data-theme="pboom"] .resume-column-left,
+#resume-sheet[data-theme="pboom"] .resume-column-right { height: auto; min-height: 100%; }
+
 @media (max-width: 767px) {
   #resume-sheet:not([data-theme="pboom"]):not([data-theme="split-sidebar"]) { padding: 1.5rem; }
   #resume-sheet[data-theme="modern"] [class*="text-right"],

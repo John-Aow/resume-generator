@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import {
   Mail, Phone, MapPin, Globe, Github, Linkedin, Briefcase, GraduationCap,
-  Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles, Download,
-  Check, RefreshCw, Layers, Palette, Clipboard, Cpu, FileJson,
-  ArrowRight, ExternalLink, HelpCircle, Save, AlertCircle,
+  Code, FolderGit, Award, Languages, Plus, Trash2, Sparkles,
+  Check, RefreshCw, Layers, Palette, Clipboard, Cpu,
+  ArrowRight, ExternalLink, HelpCircle, AlertCircle,
   ALargeSmall, ListIndentIncrease, RotateCcw, Minus, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { ResumeData, SAMPLE_RESUMES, DesignTheme } from "./types";
@@ -22,6 +23,11 @@ const clampPhotoZoom = (value: number) => Math.min(200, Math.max(100, value));
 
 export default function App() {
   const photoDragRef = useRef<{ startX: number; startY: number; cropX: number; cropY: number } | null>(null);
+  const [isPhotoCropOpen, setIsPhotoCropOpen] = useState(false);
+  const [pendingPhotoUrl, setPendingPhotoUrl] = useState("");
+  const [photoCrop, setPhotoCrop] = useState({ x: DEFAULT_PHOTO_CROP, y: DEFAULT_PHOTO_CROP, zoom: DEFAULT_PHOTO_ZOOM });
+  const [pendingPhotoAspect, setPendingPhotoAspect] = useState(1);
+  const [photoCropError, setPhotoCropError] = useState("");
   // Application settings and theme loaded synchronously from localStorage or URL parameters
   const [theme, setTheme] = useState<DesignTheme>(() => {
     if (typeof window !== "undefined") {
@@ -130,7 +136,6 @@ export default function App() {
 
   // Export & Deployment variables
   const [showDeployGuide, setShowDeployGuide] = useState<boolean>(true);
-  const [isSavedLocal, setIsSavedLocal] = useState<boolean>(false);
   const [isPrintMode, setIsPrintMode] = useState<boolean>(false);
 
   // Automatically persist selected theme to localStorage
@@ -200,13 +205,6 @@ export default function App() {
     }
   }, []);
 
-  // Manual save to local storage indicator helper
-  const handleSaveToLocalStorage = () => {
-    localStorage.setItem("resume_web_app_data", JSON.stringify(resumeData));
-    setIsSavedLocal(true);
-    setTimeout(() => setIsSavedLocal(false), 3000);
-  };
-
   // Safe handler to load predefined samples
   const handleLoadSample = (sampleKey: keyof typeof SAMPLE_RESUMES) => {
     const freshSample = JSON.parse(JSON.stringify(SAMPLE_RESUMES[sampleKey].data));
@@ -216,7 +214,10 @@ export default function App() {
   };
 
   // Helper selectors and updates
-  const updatePersonalInfo = (field: keyof typeof resumeData.personalInfo, value: string) => {
+  const updatePersonalInfo = <K extends keyof typeof resumeData.personalInfo>(
+    field: K,
+    value: (typeof resumeData.personalInfo)[K]
+  ) => {
     setResumeData(prev => ({
       ...prev,
       personalInfo: {
@@ -224,6 +225,70 @@ export default function App() {
         [field]: value
       }
     }));
+  };
+
+  const resetPhotoCrop = () => {
+    setPhotoCrop({ x: DEFAULT_PHOTO_CROP, y: DEFAULT_PHOTO_CROP, zoom: DEFAULT_PHOTO_ZOOM });
+  };
+
+  const handlePhotoPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = photoDragRef.current;
+    if (!drag) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const nextX = clampPercent(drag.cropX - ((event.clientX - drag.startX) / bounds.width) * 100);
+    const nextY = clampPercent(drag.cropY - ((event.clientY - drag.startY) / bounds.height) * 100);
+    setPhotoCrop(current => ({ ...current, x: nextX, y: nextY }));
+  };
+
+  const openPhotoCrop = (imageUrl: string) => {
+    setPendingPhotoUrl(imageUrl);
+    setPendingPhotoAspect(1);
+    resetPhotoCrop();
+    setPhotoCropError("");
+    setIsPhotoCropOpen(true);
+  };
+
+  const saveCroppedPhoto = () => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      const outputSize = 600;
+      const canvas = document.createElement("canvas");
+      canvas.width = outputSize;
+      canvas.height = outputSize;
+      const context = canvas.getContext("2d");
+      if (!context) return;
+
+      const zoom = photoCrop.zoom / 100;
+      const cropSize = Math.min(image.naturalWidth, image.naturalHeight) / zoom;
+      const maxX = Math.max(0, image.naturalWidth - cropSize);
+      const maxY = Math.max(0, image.naturalHeight - cropSize);
+      const sourceX = maxX * (photoCrop.x / 100);
+      const sourceY = maxY * (photoCrop.y / 100);
+      context.drawImage(image, sourceX, sourceY, cropSize, cropSize, 0, 0, outputSize, outputSize);
+
+      try {
+        const croppedPhoto = canvas.toDataURL("image/jpeg", 0.9);
+        setResumeData(prev => ({
+          ...prev,
+          personalInfo: {
+            ...prev.personalInfo,
+            photoUrl: croppedPhoto,
+            photoCropX: DEFAULT_PHOTO_CROP,
+            photoCropY: DEFAULT_PHOTO_CROP,
+            photoZoom: DEFAULT_PHOTO_ZOOM
+          }
+        }));
+        setPendingPhotoUrl("");
+        setPhotoCropError("");
+        setIsPhotoCropOpen(false);
+      } catch {
+        setPhotoCropError("This image cannot be cropped because its host blocks image processing. Please upload the file instead.");
+      }
+    };
+    image.onerror = () => setPhotoCropError("Unable to load this image. Please choose another file.");
+    image.src = pendingPhotoUrl;
   };
 
   // 1. Experiences actions
@@ -642,17 +707,6 @@ export default function App() {
     setOptimizerTarget(null);
   };
 
-  // Helper trigger to export standard backups
-  const downloadBackupJSON = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(resumeData, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `resume_backup_${resumeData.personalInfo.name.toLowerCase().replace(/\s+/g, "_")}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
   if (isPrintMode) {
     return (
       <div id="print-canvas" className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col items-center p-4 sm:p-10 select-none">
@@ -726,42 +780,6 @@ export default function App() {
 
         {/* Global Toolbar */}
         <div className="flex items-center gap-3">
-          <div className="template-selector hidden md:flex items-center gap-2">
-            <Layers size={15} />
-            <span>{theme === "modern" ? "Modern Professional" : theme.replaceAll("-", " ")}</span>
-          </div>
-
-          <div className="autosave-label hidden sm:flex items-center gap-1.5">
-            <Check size={14} />
-            <span>Autosaved</span>
-          </div>
-
-          <button
-            onClick={handleSaveToLocalStorage}
-            className="save-action hidden items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
-          >
-            {isSavedLocal ? (
-              <>
-                <Check size={14} className="text-emerald-400" />
-                <span>Saved Local!</span>
-              </>
-            ) : (
-              <>
-                <Save size={14} />
-                <span>Save Local</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={downloadBackupJSON}
-            title="Download full resume database backup as standard JSON metadata file"
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700 bg-slate-900 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer"
-          >
-            <Download size={14} />
-            <span className="hidden sm:inline">Export JSON</span>
-          </button>
-
           <a
             href={`/resume-generator/?print=true&theme=${theme}&accentColor=${accentColor}&fontSize=${fontSize}&indentScale=${indentScale}`}
             target="_blank"
@@ -865,6 +883,10 @@ export default function App() {
                         src={resumeData.personalInfo.photoUrl}
                         alt="Profile Preview"
                         className="w-full h-full object-cover"
+                        style={{
+                          objectPosition: `${resumeData.personalInfo.photoCropX ?? DEFAULT_PHOTO_CROP}% ${resumeData.personalInfo.photoCropY ?? DEFAULT_PHOTO_CROP}%`,
+                          transform: `scale(${(resumeData.personalInfo.photoZoom ?? DEFAULT_PHOTO_ZOOM) / 100})`
+                        }}
                         referrerPolicy="no-referrer"
                       />
                     ) : (
@@ -885,16 +907,30 @@ export default function App() {
                             if (file) {
                               const reader = new FileReader();
                               reader.onloadend = () => {
-                                updatePersonalInfo("photoUrl", reader.result as string);
+                                openPhotoCrop(reader.result as string);
                               };
                               reader.readAsDataURL(file);
                             }
+                            e.currentTarget.value = "";
                           }}
                         />
                       </label>
                       {resumeData.personalInfo.photoUrl && (
                         <button
-                          onClick={() => updatePersonalInfo("photoUrl", "")}
+                          type="button"
+                          onClick={() => openPhotoCrop(resumeData.personalInfo.photoUrl || "")}
+                          className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-[10px] px-2.5 py-1 rounded transition cursor-pointer"
+                        >
+                          Crop
+                        </button>
+                      )}
+                      {resumeData.personalInfo.photoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updatePersonalInfo("photoUrl", "");
+                            setIsPhotoCropOpen(false);
+                          }}
                           className="bg-slate-850 hover:bg-red-950/40 hover:text-red-400 text-slate-400 font-medium text-[10px] px-2.5 py-1 rounded transition cursor-pointer"
                         >
                           Remove
@@ -910,6 +946,105 @@ export default function App() {
                     />
                   </div>
                 </div>
+
+                {pendingPhotoUrl && isPhotoCropOpen && (
+                  <div className="bg-slate-950/60 border border-blue-500/25 p-4 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold text-slate-200">Crop profile photo</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Drag the image to position your face inside the frame.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetPhotoCrop}
+                        className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-white transition cursor-pointer"
+                      >
+                        <RotateCcw size={12} /> Reset
+                      </button>
+                    </div>
+
+                    <div
+                      role="img"
+                      aria-label="Profile photo crop preview. Drag to reposition."
+                      className="relative mx-auto h-44 w-44 overflow-hidden rounded-full border-2 border-blue-500/70 bg-slate-900 shadow-lg shadow-black/30 cursor-grab active:cursor-grabbing touch-none select-none"
+                      onPointerDown={(event) => {
+                        event.currentTarget.setPointerCapture(event.pointerId);
+                        photoDragRef.current = {
+                          startX: event.clientX,
+                          startY: event.clientY,
+                          cropX: photoCrop.x,
+                          cropY: photoCrop.y
+                        };
+                      }}
+                      onPointerMove={handlePhotoPointerMove}
+                      onPointerUp={() => { photoDragRef.current = null; }}
+                      onPointerCancel={() => { photoDragRef.current = null; }}
+                    >
+                      <img
+                        src={pendingPhotoUrl}
+                        alt="Crop preview"
+                        draggable={false}
+                        onLoad={(event) => setPendingPhotoAspect(event.currentTarget.naturalWidth / event.currentTarget.naturalHeight)}
+                        className="pointer-events-none absolute max-w-none"
+                        style={(() => {
+                          const zoom = photoCrop.zoom / 100;
+                          const widthPercent = (pendingPhotoAspect >= 1 ? pendingPhotoAspect : 1) * zoom * 100;
+                          const heightPercent = (pendingPhotoAspect >= 1 ? 1 : 1 / pendingPhotoAspect) * zoom * 100;
+                          return {
+                            width: `${widthPercent}%`,
+                            height: `${heightPercent}%`,
+                            maxWidth: "none",
+                            left: `${-((widthPercent - 100) * photoCrop.x) / 100}%`,
+                            top: `${-((heightPercent - 100) * photoCrop.y) / 100}%`
+                          };
+                        })()}
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Minus size={14} className="text-slate-500 shrink-0" />
+                      <input
+                        type="range"
+                        min="100"
+                        max="200"
+                        step="1"
+                        aria-label="Photo zoom"
+                        value={photoCrop.zoom}
+                        onChange={(event) => setPhotoCrop(current => ({ ...current, zoom: clampPhotoZoom(Number(event.target.value)) }))}
+                        className="w-full accent-blue-500 cursor-pointer"
+                      />
+                      <Plus size={14} className="text-slate-500 shrink-0" />
+                      <span className="w-9 text-right text-[10px] tabular-nums text-slate-400">
+                        {Math.round(photoCrop.zoom)}%
+                      </span>
+                    </div>
+                    {photoCropError && (
+                      <p className="text-[10px] text-red-400" role="alert">{photoCropError}</p>
+                    )}
+                    <div className="flex justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPendingPhotoUrl("");
+                          setPhotoCropError("");
+                          setIsPhotoCropOpen(false);
+                        }}
+                        className="rounded-lg px-3 py-1.5 text-[11px] font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={saveCroppedPhoto}
+                        className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-1.5 text-[11px] font-bold text-white hover:bg-blue-500 transition cursor-pointer"
+                      >
+                        <Check size={13} /> Save cropped photo
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
