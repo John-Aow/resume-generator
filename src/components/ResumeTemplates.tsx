@@ -1008,12 +1008,12 @@ const ResumePreviewContent: FC<ResumePreviewProps> = ({ data, theme, accentColor
                     <div className="space-y-5">
                       {education.map((edu) => (
                         <div key={edu.id} className="text-[13px] leading-snug">
-                          <h3 className="text-[15px] font-extrabold leading-tight">
-                            {edu.degree}{edu.endDate ? ` - ${edu.endDate.replace(/^[A-Za-z]{3}\s+/, "")}` : ""}
-                          </h3>
+                          <h3 className="text-[15px] font-extrabold leading-tight">{edu.degree}</h3>
                           <p>{edu.institution}</p>
                           {edu.field && <p>{edu.field}</p>}
                           {edu.location && <p>{edu.location}</p>}
+                          {edu.startDate && <p className="mt-1"><span className="font-extrabold">Start:</span> {edu.startDate}</p>}
+                          {edu.endDate && <p><span className="font-extrabold">End:</span> {edu.current ? "Present" : edu.endDate}</p>}
                         </div>
                       ))}
                     </div>
