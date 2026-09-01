@@ -1,0 +1,21 @@
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+    branch: main
+
+steps:
+  - name: install
+    image: node:22-bookworm
+    commands:
+      - npm ci
+
+  - name: lint
+    image: node:22-bookworm
+    commands:
+      - npm run lint
+
+  - name: build
+    image: node:22-bookworm
+    commands:
+      - npm run build
